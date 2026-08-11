@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1200" viewBox="0 0 1800 1200">
+  <defs>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="22" stdDeviation="28" flood-color="#10203f" flood-opacity=".22"/>
+    </filter>
+    <filter id="heartGlow" x="-70%" y="-70%" width="240%" height="240%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 .82 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <radialGradient id="pdBg" cx="24%" cy="20%" r="92%">
+      <stop offset="0" stop-color="#d9ceff"/>
+      <stop offset=".48" stop-color="#7466df"/>
+      <stop offset="1" stop-color="#323b9d"/>
+    </radialGradient>
+    <linearGradient id="pdHeart" x1="18%" y1="18%" x2="82%" y2="82%">
+      <stop offset="0" stop-color="#fff08a"/>
+      <stop offset=".52" stop-color="#ff8a1f"/>
+      <stop offset="1" stop-color="#ff1f6d"/>
+    </linearGradient>
+
+    <radialGradient id="srBg" cx="20%" cy="18%" r="98%">
+      <stop offset="0" stop-color="#ffe4a8"/>
+      <stop offset=".48" stop-color="#ff8e73"/>
+      <stop offset="1" stop-color="#e95f9f"/>
+    </radialGradient>
+    <linearGradient id="srHeart" x1="12%" y1="18%" x2="88%" y2="82%">
+      <stop offset="0" stop-color="#1520ff"/>
+      <stop offset="1" stop-color="#00e0d4"/>
+    </linearGradient>
+
+    <radialGradient id="dtBg" cx="25%" cy="18%" r="95%">
+      <stop offset="0" stop-color="#f4fbff"/>
+      <stop offset=".48" stop-color="#7fc7ff"/>
+      <stop offset="1" stop-color="#3e7ee8"/>
+    </radialGradient>
+    <linearGradient id="dtHeart" x1="16%" y1="18%" x2="84%" y2="82%">
+      <stop offset="0" stop-color="#ff2f68"/>
+      <stop offset="1" stop-color="#ffb000"/>
+    </linearGradient>
+
+    <radialGradient id="dkBg" cx="22%" cy="20%" r="95%">
+      <stop offset="0" stop-color="#d8c3ff"/>
+      <stop offset=".52" stop-color="#7f54db"/>
+      <stop offset="1" stop-color="#2d3f9e"/>
+    </radialGradient>
+    <linearGradient id="dkHeart" x1="14%" y1="22%" x2="88%" y2="78%">
+      <stop offset="0" stop-color="#00ffd1"/>
+      <stop offset=".48" stop-color="#a8ff5f"/>
+      <stop offset="1" stop-color="#fff06a"/>
+    </linearGradient>
+
+    <radialGradient id="ssBg" cx="26%" cy="18%" r="98%">
+      <stop offset="0" stop-color="#ffdf7e"/>
+      <stop offset=".48" stop-color="#ff5e7d"/>
+      <stop offset="1" stop-color="#a94df2"/>
+    </radialGradient>
+    <linearGradient id="ssHeart" x1="10%" y1="20%" x2="88%" y2="80%">
+      <stop offset="0" stop-color="#1018ff"/>
+      <stop offset="1" stop-color="#00d9ff"/>
+    </linearGradient>
+
+    <radialGradient id="ngBg" cx="22%" cy="18%" r="100%">
+      <stop offset="0" stop-color="#5e6fdc"/>
+      <stop offset=".52" stop-color="#29368f"/>
+      <stop offset="1" stop-color="#151847"/>
+    </radialGradient>
+    <linearGradient id="ngHeart" x1="16%" y1="16%" x2="84%" y2="84%">
+      <stop offset="0" stop-color="#ffdc72"/>
+      <stop offset="1" stop-color="#ff3a8c"/>
+    </linearGradient>
+
+    <symbol id="heartMark" viewBox="-180 -160 360 330">
+      <path d="M0 132 C-116 42 -164 -20 -148 -82 C-136 -132 -72 -150 -22 -100 C-10 -88 -4 -74 0 -58 C4 -74 10 -88 22 -100 C72 -150 136 -132 148 -82 C164 -20 116 42 0 132Z"/>
+    </symbol>
+  </defs>
+
+  <rect width="1800" height="1200" fill="#f7f8ff"/>
+
+  <g transform="translate(46 44)">
+    <g filter="url(#softShadow)">
+      <rect x="0" y="0" width="540" height="520" rx="26" fill="url(#pdBg)"/>
+      <circle cx="270" cy="268" r="150" fill="#fff" opacity=".14"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="none" stroke="url(#pdHeart)" stroke-width="28" opacity=".30" filter="url(#heartGlow)"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="url(#pdHeart)" opacity=".27"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="none" stroke="url(#pdHeart)" stroke-width="6" opacity=".98"/>
+      <use href="#heartMark" x="270" y="296" width="230" height="210" transform="translate(-115 -105)" fill="none" stroke="#fff7b0" stroke-width="3.5" opacity=".66"/>
+      <circle cx="392" cy="206" r="2.6" fill="#fff4bc"/><circle cx="147" cy="236" r="2.2" fill="#ff71a7"/><circle cx="360" cy="354" r="2.1" fill="#fff4bc"/>
+      <text x="34" y="58" fill="#f8f3ff" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">Pre-dawn</text>
+      <text x="34" y="94" fill="#f8f3ff" opacity=".78" font-family="Inter, Arial, sans-serif" font-size="17">bright amber + rose on deep violet</text>
+    </g>
+  </g>
+
+  <g transform="translate(630 44)">
+    <g filter="url(#softShadow)">
+      <rect x="0" y="0" width="540" height="520" rx="26" fill="url(#srBg)"/>
+      <circle cx="270" cy="268" r="150" fill="#fff" opacity=".12"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="none" stroke="url(#srHeart)" stroke-width="22" opacity=".22" filter="url(#heartGlow)"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="url(#srHeart)" opacity=".20"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="none" stroke="url(#srHeart)" stroke-width="5" opacity=".94"/>
+      <use href="#heartMark" x="270" y="296" width="230" height="210" transform="translate(-115 -105)" fill="none" stroke="#b6fff8" stroke-width="3" opacity=".50"/>
+      <circle cx="387" cy="210" r="2.6" fill="#a9fff7"/><circle cx="150" cy="240" r="2.2" fill="#1b25ff"/><circle cx="366" cy="354" r="2.1" fill="#a9fff7"/>
+      <text x="34" y="58" fill="#fff8ef" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">Sunrise</text>
+      <text x="34" y="94" fill="#fff8ef" opacity=".80" font-family="Inter, Arial, sans-serif" font-size="17">royal blue + aqua on warm sky</text>
+    </g>
+  </g>
+
+  <g transform="translate(1214 44)">
+    <g filter="url(#softShadow)">
+      <rect x="0" y="0" width="540" height="520" rx="26" fill="url(#dtBg)"/>
+      <circle cx="270" cy="268" r="150" fill="#fff" opacity=".13"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="none" stroke="url(#dtHeart)" stroke-width="22" opacity=".24" filter="url(#heartGlow)"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="url(#dtHeart)" opacity=".23"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="none" stroke="url(#dtHeart)" stroke-width="5" opacity=".96"/>
+      <use href="#heartMark" x="270" y="296" width="230" height="210" transform="translate(-115 -105)" fill="none" stroke="#ffe5b0" stroke-width="3" opacity=".54"/>
+      <circle cx="390" cy="207" r="2.6" fill="#ffe2a4"/><circle cx="150" cy="240" r="2.2" fill="#ff4776"/><circle cx="362" cy="354" r="2.1" fill="#ffd48f"/>
+      <text x="34" y="58" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">Daytime</text>
+      <text x="34" y="94" fill="#ffffff" opacity=".82" font-family="Inter, Arial, sans-serif" font-size="17">coral rose + amber on blue sky</text>
+    </g>
+  </g>
+
+  <g transform="translate(46 636)">
+    <g filter="url(#softShadow)">
+      <rect x="0" y="0" width="540" height="520" rx="26" fill="url(#dkBg)"/>
+      <circle cx="270" cy="268" r="150" fill="#fff" opacity=".12"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="none" stroke="url(#dkHeart)" stroke-width="28" opacity=".30" filter="url(#heartGlow)"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="url(#dkHeart)" opacity=".25"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="none" stroke="url(#dkHeart)" stroke-width="6" opacity=".98"/>
+      <use href="#heartMark" x="270" y="296" width="230" height="210" transform="translate(-115 -105)" fill="none" stroke="#f5ffba" stroke-width="3.5" opacity=".64"/>
+      <circle cx="390" cy="207" r="2.6" fill="#fff0a8"/><circle cx="150" cy="240" r="2.2" fill="#58ffd5"/><circle cx="362" cy="354" r="2.1" fill="#fff0a8"/>
+      <text x="34" y="58" fill="#fff7ff" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">Dusk</text>
+      <text x="34" y="94" fill="#fff7ff" opacity=".80" font-family="Inter, Arial, sans-serif" font-size="17">aqua lime + gold on deep dusk</text>
+    </g>
+  </g>
+
+  <g transform="translate(630 636)">
+    <g filter="url(#softShadow)">
+      <rect x="0" y="0" width="540" height="520" rx="26" fill="url(#ssBg)"/>
+      <circle cx="270" cy="268" r="150" fill="#fff" opacity=".12"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="none" stroke="url(#ssHeart)" stroke-width="22" opacity=".22" filter="url(#heartGlow)"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="url(#ssHeart)" opacity=".20"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="none" stroke="url(#ssHeart)" stroke-width="5" opacity=".96"/>
+      <use href="#heartMark" x="270" y="296" width="230" height="210" transform="translate(-115 -105)" fill="none" stroke="#c8fbff" stroke-width="3" opacity=".52"/>
+      <circle cx="390" cy="207" r="2.6" fill="#b8f9ff"/><circle cx="150" cy="240" r="2.2" fill="#1520ff"/><circle cx="362" cy="354" r="2.1" fill="#b8f9ff"/>
+      <text x="34" y="58" fill="#fff9f2" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">Sunset</text>
+      <text x="34" y="94" fill="#fff9f2" opacity=".82" font-family="Inter, Arial, sans-serif" font-size="17">deep blue + cyan on hot sunset</text>
+    </g>
+  </g>
+
+  <g transform="translate(1214 636)">
+    <g filter="url(#softShadow)">
+      <rect x="0" y="0" width="540" height="520" rx="26" fill="url(#ngBg)"/>
+      <circle cx="270" cy="268" r="150" fill="#fff2b8" opacity=".12"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="none" stroke="url(#ngHeart)" stroke-width="22" opacity=".28" filter="url(#heartGlow)"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="url(#ngHeart)" opacity=".24"/>
+      <use href="#heartMark" x="270" y="276" width="360" height="330" transform="translate(-180 -165)" fill="none" stroke="url(#ngHeart)" stroke-width="5" opacity=".98"/>
+      <use href="#heartMark" x="270" y="296" width="230" height="210" transform="translate(-115 -105)" fill="none" stroke="#fff2aa" stroke-width="3" opacity=".56"/>
+      <circle cx="390" cy="207" r="2.6" fill="#fff2aa"/><circle cx="150" cy="240" r="2.2" fill="#ff5c9c"/><circle cx="362" cy="354" r="2.1" fill="#fff2aa"/>
+      <text x="34" y="58" fill="#f5f8ff" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">Night</text>
+      <text x="34" y="94" fill="#f5f8ff" opacity=".80" font-family="Inter, Arial, sans-serif" font-size="17">champagne + rose on deep night</text>
+    </g>
+  </g>
+</svg>
