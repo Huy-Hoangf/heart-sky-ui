@@ -6,39 +6,39 @@ const themeIcon = document.getElementById('themeIcon');
 const launchWrap = document.getElementById('launchWrap');
 const launchButton = document.getElementById('launchButton');
 const buttons = [...document.querySelectorAll('.mode-btn')];
-const HOLD_DURATION = 750;
+const HOLD_DURATION = 200;
 
 // 2-tone heart palettes: stronger/saturated heart, softer pastel background.
 const themes = {
   predawn: {
     label: 'Pre-dawn', icon: 'orbit',
     rayA: [0.07, 0.20, 1.00], rayB: [0.58, 0.18, 1.00],
-    bgA: [0.91, 0.88, 0.98], bgB: [0.84, 0.74, 0.98], bgC: [0.94, 0.90, 0.99],
+    bgA: [0.87, 0.82, 0.98], bgB: [0.76, 0.66, 0.98], bgC: [0.90, 0.84, 1.00],
   },
   sunrise: {
     label: 'Sunrise', icon: 'sunrise',
     rayA: [1.00, 0.28, 0.46], rayB: [1.00, 0.66, 0.30],
-    bgA: [0.98, 0.86, 0.93], bgB: [1.00, 0.77, 0.66], bgC: [0.88, 0.82, 1.00],
+    bgA: [0.99, 0.80, 0.90], bgB: [1.00, 0.67, 0.55], bgC: [0.82, 0.74, 1.00],
   },
   daytime: {
     label: 'Daytime', icon: 'sun',
     rayA: [0.17, 0.36, 1.00], rayB: [0.03, 0.72, 0.96],
-    bgA: [0.87, 0.91, 1.00], bgB: [0.91, 0.83, 0.99], bgC: [0.78, 0.93, 1.00],
+    bgA: [0.78, 0.88, 1.00], bgB: [0.86, 0.75, 1.00], bgC: [0.66, 0.90, 1.00],
   },
   dusk: {
     label: 'Dusk', icon: 'dusk',
     rayA: [0.36, 0.20, 1.00], rayB: [0.94, 0.25, 0.74],
-    bgA: [0.86, 0.80, 0.98], bgB: [0.97, 0.79, 0.91], bgC: [0.82, 0.87, 1.00],
+    bgA: [0.79, 0.72, 0.98], bgB: [0.98, 0.70, 0.88], bgC: [0.74, 0.82, 1.00],
   },
   sunset: {
     label: 'Sunset', icon: 'sunset',
     rayA: [0.32, 0.16, 1.00], rayB: [1.00, 0.48, 0.39],
-    bgA: [0.88, 0.78, 0.99], bgB: [0.99, 0.70, 0.89], bgC: [1.00, 0.76, 0.65],
+    bgA: [0.80, 0.68, 0.99], bgB: [1.00, 0.60, 0.84], bgC: [1.00, 0.66, 0.50],
   },
   night: {
     label: 'Night', icon: 'moon',
     rayA: [0.06, 0.14, 0.72], rayB: [0.48, 0.28, 1.00],
-    bgA: [0.79, 0.82, 0.95], bgB: [0.84, 0.78, 0.96], bgC: [0.70, 0.82, 0.99],
+    bgA: [0.66, 0.72, 0.94], bgB: [0.72, 0.64, 0.95], bgC: [0.52, 0.70, 1.00],
   },
 };
 
@@ -98,7 +98,7 @@ attribute vec2 a_position; varying vec2 v_uv;
 void main(){v_uv=a_position*.5+.5; gl_Position=vec4(a_position,0.,1.);}`;
 const BG_FS=`
 precision highp float; varying vec2 v_uv;
-uniform vec2 u_resolution; uniform float u_time; uniform vec3 u_bgA,u_bgB,u_bgC;
+uniform vec2 u_resolution,u_pointer; uniform float u_time,u_pointerStrength; uniform vec3 u_bgA,u_bgB,u_bgC;
 float blob(vec2 uv,vec2 c,float r){float d=length(uv-c);return 1.-smoothstep(r*.12,r,d);}
 void main(){
   vec2 uv=v_uv; float asp=u_resolution.x/max(u_resolution.y,1.);
@@ -107,17 +107,25 @@ void main(){
   vec2 c2=vec2(.08+cos(t*.041+1.7)*.17,.20+sin(t*.046+.4)*.12);
   vec2 c3=vec2(.52+sin(t*.034+2.4)*.13,-.20+cos(t*.039+1.1)*.11);
   vec2 c4=vec2(-.08+cos(t*.028+.8)*.22,-.45+sin(t*.034+2.1)*.11);
-  float b1=blob(p,c1,.95), b2=blob(p,c2,.93), b3=blob(p,c3,.98), b4=blob(p,c4,1.08);
-  vec3 col=vec3(.988,.991,.996);
-  col=mix(col,u_bgA,b1*.70); col=mix(col,u_bgB,b2*.64); col=mix(col,u_bgC,b3*.62);
-  col=mix(col,mix(u_bgA,u_bgB,.5),b4*.30);
-  col=mix(col,vec3(1.),.045);
+  vec2 mp=vec2((u_pointer.x/u_resolution.x-.5)*asp,.5-u_pointer.y/u_resolution.y);
+  float touch=blob(p,mp,.58)*u_pointerStrength;
+  float b1=blob(p,c1,1.02), b2=blob(p,c2,.98), b3=blob(p,c3,1.02), b4=blob(p,c4,1.14);
+  vec3 col=vec3(.976,.982,.996);
+  col=mix(col,u_bgA,b1*.82); col=mix(col,u_bgB,b2*.76); col=mix(col,u_bgC,b3*.72);
+  col=mix(col,mix(u_bgA,u_bgB,.5),b4*.42);
+  col=mix(col,mix(u_bgB,u_bgC,.46),touch*.34);
+  col=mix(col,vec3(1.),.018);
   gl_FragColor=vec4(col,1.);
 }`;
 const bgProgram=makeProgram(BG_VS,BG_FS);
 const bgBuffer=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,bgBuffer);
 gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
-const bgLoc={pos:gl.getAttribLocation(bgProgram,'a_position'),res:gl.getUniformLocation(bgProgram,'u_resolution'),time:gl.getUniformLocation(bgProgram,'u_time'),a:gl.getUniformLocation(bgProgram,'u_bgA'),b:gl.getUniformLocation(bgProgram,'u_bgB'),c:gl.getUniformLocation(bgProgram,'u_bgC')};
+const bgLoc={
+  pos:gl.getAttribLocation(bgProgram,'a_position'),res:gl.getUniformLocation(bgProgram,'u_resolution'),
+  time:gl.getUniformLocation(bgProgram,'u_time'),pointer:gl.getUniformLocation(bgProgram,'u_pointer'),
+  pointerStrength:gl.getUniformLocation(bgProgram,'u_pointerStrength'),
+  a:gl.getUniformLocation(bgProgram,'u_bgA'),b:gl.getUniformLocation(bgProgram,'u_bgB'),c:gl.getUniformLocation(bgProgram,'u_bgC')
+};
 
 // ---------- fiber shader ----------
 // Rays still LOOK like thin rays. Motion is what changes: each ray is segmented and
@@ -127,8 +135,9 @@ const HEART_VS=`
 precision highp float;
 attribute vec2 a_heart; attribute vec2 a_core;
 attribute float a_tint,a_alpha,a_size,a_phase,a_depth,a_s;
-uniform vec2 u_resolution,u_center;
+uniform vec2 u_resolution,u_center,u_pointer;
 uniform float u_scale,u_time,u_dpr,u_idleMix,u_reveal;
+uniform float u_pointerStrength;
 uniform vec3 u_rayA,u_rayB;
 uniform vec2 u_impulsePos[5];
 uniform vec2 u_impulseVel[5];
@@ -181,33 +190,43 @@ void main(){
     float hitS=sat(dot(ip-start,ray)/len2);
     vec2 hitPoint=start+ray*hitS;
     float d=length(ip-hitPoint);
-    float radius=min(u_resolution.x,u_resolution.y)*.098;
+    float radius=min(u_resolution.x,u_resolution.y)*.122;
     float nearRay=1.0-smoothstep(radius*.22,radius,d);
 
     // Fiber response: close fibers bend most; neighboring fibers bend less.
     float local=a_s-hitS;
-    float aroundHit=exp(-abs(local)*10.3);
-    float downstream=smoothstep(-.018,.040,local);
-    float shortTail=exp(-max(local,0.0)*6.6);
+    float aroundHit=exp(-abs(local)*7.8);
+    float downstream=smoothstep(-.035,.060,local);
+    float shortTail=exp(-max(local,0.0)*4.9);
     float tail=sat(local/.285);
     tail=smoothPulse(tail)*shortTail;
 
     // Older impulses continue moving, but fade quickly and smoothly.
-    float decay=exp(-age*1.58);
+    float decay=exp(-age*1.24);
     float speed=min(length(iv),1200.0);
     vec2 dir = speed>2.0 ? normalize(iv) : normal;
 
     // Main brush follows drag direction. Tip gets more freedom like a real flexible fiber.
     float bodyWeight=.72*aroundHit + .28*downstream*tail;
-    vec2 brush=dir*(6.20+7.80*tail)*bodyWeight;
+    vec2 brush=dir*(4.70+6.40*tail)*bodyWeight;
 
     // Small damped overshoot after the pointer has passed: rope-like, but not wavy/cartoonish.
     float vN=dot(iv,normal);
     float overshoot=sin(age*3.15 - tail*.96) * exp(-age*1.92);
-    vec2 elastic=normal*clamp(vN/1050.0,-1.0,1.0)*(4.30+5.80*tail)*overshoot*downstream*tail;
+    vec2 elastic=normal*clamp(vN/1050.0,-1.0,1.0)*(3.40+4.60*tail)*overshoot*downstream*tail;
 
     displacement += (brush + elastic) * nearRay * decay * is;
   }
+
+  vec2 pointerVector=u_pointer-basePos;
+  float pointerDistance=length(pointerVector);
+  float fieldRadius=min(u_resolution.x,u_resolution.y)*.205;
+  float field=1.0-smoothstep(fieldRadius*.18,fieldRadius,pointerDistance);
+  vec2 pointerDir=pointerDistance>1.0 ? pointerVector/pointerDistance : normal;
+  float liveFiber=smoothstep(.14,1.0,a_s);
+  float magnetic=field*u_pointerStrength*liveFiber*reveal;
+  displacement += pointerDir*magnetic*(5.8+5.2*tipFlex);
+  displacement += normal*sin(pointerDistance*.018-t*3.0+a_phase*.23)*field*field*u_pointerStrength*(1.6+3.0*tipFlex)*reveal;
 
   // Tip flexibility + subtle auto-ripple make the default motion easier to notice.
   float tipFlex=a_s*a_s;
@@ -255,7 +274,8 @@ const heartLoc={
   res:gl.getUniformLocation(heartProgram,'u_resolution'), center:gl.getUniformLocation(heartProgram,'u_center'),
   scale:gl.getUniformLocation(heartProgram,'u_scale'), time:gl.getUniformLocation(heartProgram,'u_time'),
   rayA:gl.getUniformLocation(heartProgram,'u_rayA'), rayB:gl.getUniformLocation(heartProgram,'u_rayB'),
-  dpr:gl.getUniformLocation(heartProgram,'u_dpr'), idleMix:gl.getUniformLocation(heartProgram,'u_idleMix'), reveal:gl.getUniformLocation(heartProgram,'u_reveal'), pointPass:gl.getUniformLocation(heartProgram,'u_pointPass'),
+  dpr:gl.getUniformLocation(heartProgram,'u_dpr'), idleMix:gl.getUniformLocation(heartProgram,'u_idleMix'), reveal:gl.getUniformLocation(heartProgram,'u_reveal'),
+  pointer:gl.getUniformLocation(heartProgram,'u_pointer'), pointerStrength:gl.getUniformLocation(heartProgram,'u_pointerStrength'), pointPass:gl.getUniformLocation(heartProgram,'u_pointPass'),
   impulsePos:gl.getUniformLocation(heartProgram,'u_impulsePos[0]'),
   impulseVel:gl.getUniformLocation(heartProgram,'u_impulseVel[0]'),
   impulseAge:gl.getUniformLocation(heartProgram,'u_impulseAge[0]'),
@@ -340,22 +360,22 @@ function addImpulse(x,y,vx,vy,strength=1){
 
 function updatePointer(dt){
   const oldX=pointer.x, oldY=pointer.y;
-  [pointer.x,pointer.vx]=spring(pointer.x,pointer.vx,pointer.tx,dt,1.70,.978);
-  [pointer.y,pointer.vy]=spring(pointer.y,pointer.vy,pointer.ty,dt,1.70,.978);
-  [pointer.strength,pointer.strengthV]=spring(pointer.strength,pointer.strengthV,pointer.targetStrength,dt,1.48,.982);
+  [pointer.x,pointer.vx]=spring(pointer.x,pointer.vx,pointer.tx,dt,1.32,.986);
+  [pointer.y,pointer.vy]=spring(pointer.y,pointer.vy,pointer.ty,dt,1.32,.986);
+  [pointer.strength,pointer.strengthV]=spring(pointer.strength,pointer.strengthV,pointer.targetStrength,dt,1.24,.986);
 
   const dx=pointer.x-oldX, dy=pointer.y-oldY;
   const speed=Math.hypot(dx,dy)/Math.max(dt,.001);
   const dist=Math.hypot(pointer.x-pointer.lastImpulseX,pointer.y-pointer.lastImpulseY);
   const since=elapsed-pointer.lastImpulseT;
-  if(pointer.strength>.04 && speed>12 && (dist>8 || since>.036)){
-    const vscale=Math.min(1.0, speed/900);
-    addImpulse(pointer.x,pointer.y,pointer.vx,pointer.vy,.26+.68*vscale);
+  if(pointer.strength>.035 && speed>10 && (dist>10 || since>.048)){
+    const vscale=Math.min(1.0, speed/820);
+    addImpulse(pointer.x,pointer.y,pointer.vx,pointer.vy,.18+.54*vscale);
     pointer.lastImpulseX=pointer.x;pointer.lastImpulseY=pointer.y;pointer.lastImpulseT=elapsed;
   }
 
-  const activeInteract = pointer.down || ((elapsed - pointer.lastMoveT) < 0.14 && pointer.targetStrength > 0.001);
-  if (!pointer.down && (elapsed - pointer.lastMoveT) > 0.16) pointer.targetStrength = 0;
+  const activeInteract = pointer.down || ((elapsed - pointer.lastMoveT) < 0.22 && pointer.targetStrength > 0.001);
+  if (!pointer.down && (elapsed - pointer.lastMoveT) > 0.24) pointer.targetStrength = 0;
   idleTarget = activeInteract ? 0 : 1;
   [idleMix,idleMixV] = spring(idleMix,idleMixV,idleTarget,dt,1.55,.92);
 
@@ -377,7 +397,9 @@ function smoothColor(cur,target,dt,speed=2.0){const k=1-Math.exp(-speed*dt);for(
 function drawBackground(){
   gl.disable(gl.BLEND);gl.useProgram(bgProgram);gl.bindBuffer(gl.ARRAY_BUFFER,bgBuffer);
   gl.enableVertexAttribArray(bgLoc.pos);gl.vertexAttribPointer(bgLoc.pos,2,gl.FLOAT,false,0,0);
-  gl.uniform2f(bgLoc.res,W,H);gl.uniform1f(bgLoc.time,elapsed);gl.uniform3fv(bgLoc.a,bgA);gl.uniform3fv(bgLoc.b,bgB);gl.uniform3fv(bgLoc.c,bgC);
+  gl.uniform2f(bgLoc.res,W,H);gl.uniform1f(bgLoc.time,elapsed);
+  gl.uniform2f(bgLoc.pointer,pointer.x,pointer.y);gl.uniform1f(bgLoc.pointerStrength,pointer.strength);
+  gl.uniform3fv(bgLoc.a,bgA);gl.uniform3fv(bgLoc.b,bgB);gl.uniform3fv(bgLoc.c,bgC);
   gl.drawArrays(gl.TRIANGLES,0,3);
 }
 
@@ -385,6 +407,7 @@ function setHeartUniforms(){
   const {cx,cy,scale}=layout();
   gl.uniform2f(heartLoc.res,W,H);gl.uniform2f(heartLoc.center,cx,cy);gl.uniform1f(heartLoc.scale,scale);gl.uniform1f(heartLoc.time,elapsed);
   gl.uniform3fv(heartLoc.rayA,rayA);gl.uniform3fv(heartLoc.rayB,rayB);gl.uniform1f(heartLoc.dpr,dpr);gl.uniform1f(heartLoc.idleMix,idleMix);gl.uniform1f(heartLoc.reveal,reveal);
+  gl.uniform2f(heartLoc.pointer,pointer.x,pointer.y);gl.uniform1f(heartLoc.pointerStrength,pointer.strength);
   packImpulses();
   gl.uniform2fv(heartLoc.impulsePos,impulsePos);gl.uniform2fv(heartLoc.impulseVel,impulseVel);
   gl.uniform1fv(heartLoc.impulseAge,impulseAge);gl.uniform1fv(heartLoc.impulseStrength,impulseStrength);
@@ -502,7 +525,7 @@ launchButton?.addEventListener('keyup',e=>{
 
 function setPointer(x,y,on=true){
   if(!launched) return;
-  pointer.tx=x;pointer.ty=y;pointer.targetStrength=on?.82:0;
+  pointer.tx=x;pointer.ty=y;pointer.targetStrength=on?.92:0;
   if(on) pointer.lastMoveT = elapsed;
 }
 
