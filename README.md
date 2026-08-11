@@ -10,7 +10,7 @@ Static HTML/CSS/JavaScript project. No backend required.
 - Responsive heart bounding box for mobile portrait and landscape.
 - No outline around the heart.
 - Theme menu remains compact.
-- Opens with a 0.2s hold-to-bloom `For Hà Chang` button, then smoothly blooms into the heart.
+- Opens with a 0.2s hold-to-bloom `to Hà Chang` secret tag, then smoothly blooms into the heart.
 - Stripe-inspired theme menu with icon-only toggle and compact theme options.
 - Refined heartbeat idle motion with a subtle glow pulse.
 - Softer root fade keeps the heart center from becoming too dense.

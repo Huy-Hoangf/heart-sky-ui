@@ -518,6 +518,9 @@ launchButton?.addEventListener('pointerup',releaseHold);
 launchButton?.addEventListener('pointercancel',cancelHold);
 launchButton?.addEventListener('pointerleave',cancelHold);
 launchButton?.addEventListener('click',e=>e.preventDefault());
+launchButton?.addEventListener('contextmenu',e=>e.preventDefault());
+launchButton?.addEventListener('selectstart',e=>e.preventDefault());
+launchButton?.addEventListener('dragstart',e=>e.preventDefault());
 launchButton?.addEventListener('keydown',e=>{
   if((e.key===' ' || e.key==='Enter') && !holdActive) startHold(e);
 });
