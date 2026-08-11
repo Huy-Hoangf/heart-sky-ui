@@ -10,37 +10,37 @@ const HOLD_DURATION = 200;
 
 window.addEventListener('error', () => app?.classList.add('render-fallback'));
 
-// 2-tone heart palettes: stronger/saturated heart, softer pastel background.
+// 2-tone heart palettes: heart colors deliberately sit apart from each background.
 const themes = {
   predawn: {
     label: 'Pre-dawn', icon: 'orbit',
-    rayA: [0.06, 0.10, 0.98], rayB: [0.98, 0.16, 0.86],
-    bgA: [0.76, 0.66, 0.98], bgB: [0.58, 0.46, 0.98], bgC: [0.89, 0.72, 1.00],
+    rayA: [1.00, 0.68, 0.18], rayB: [1.00, 0.18, 0.54],
+    bgA: [0.62, 0.55, 0.92], bgB: [0.46, 0.42, 0.86], bgC: [0.78, 0.68, 0.98],
   },
   sunrise: {
     label: 'Sunrise', icon: 'sunrise',
-    rayA: [0.88, 0.08, 0.48], rayB: [1.00, 0.78, 0.18],
-    bgA: [1.00, 0.62, 0.82], bgB: [1.00, 0.44, 0.34], bgC: [0.70, 0.56, 1.00],
+    rayA: [0.10, 0.12, 0.96], rayB: [0.00, 0.88, 0.84],
+    bgA: [1.00, 0.66, 0.76], bgB: [0.98, 0.46, 0.36], bgC: [1.00, 0.78, 0.50],
   },
   daytime: {
     label: 'Daytime', icon: 'sun',
-    rayA: [0.06, 0.22, 1.00], rayB: [0.00, 0.95, 0.78],
-    bgA: [0.56, 0.76, 1.00], bgB: [0.68, 0.52, 1.00], bgC: [0.36, 0.80, 1.00],
+    rayA: [0.92, 0.04, 0.46], rayB: [1.00, 0.62, 0.08],
+    bgA: [0.54, 0.74, 1.00], bgB: [0.42, 0.68, 0.96], bgC: [0.72, 0.88, 1.00],
   },
   dusk: {
     label: 'Dusk', icon: 'dusk',
-    rayA: [0.24, 0.10, 1.00], rayB: [1.00, 0.18, 0.68],
-    bgA: [0.58, 0.48, 0.96], bgB: [0.96, 0.48, 0.78], bgC: [0.50, 0.66, 1.00],
+    rayA: [0.00, 0.92, 0.72], rayB: [1.00, 0.74, 0.22],
+    bgA: [0.60, 0.42, 0.92], bgB: [0.86, 0.42, 0.76], bgC: [0.44, 0.54, 0.94],
   },
   sunset: {
     label: 'Sunset', icon: 'sunset',
-    rayA: [0.42, 0.08, 1.00], rayB: [1.00, 0.68, 0.18],
-    bgA: [0.62, 0.42, 0.98], bgB: [1.00, 0.38, 0.72], bgC: [1.00, 0.48, 0.28],
+    rayA: [0.08, 0.12, 0.92], rayB: [0.00, 0.84, 0.95],
+    bgA: [0.90, 0.38, 0.86], bgB: [1.00, 0.42, 0.48], bgC: [1.00, 0.62, 0.30],
   },
   night: {
     label: 'Night', icon: 'moon',
-    rayA: [0.00, 0.92, 0.92], rayB: [1.00, 0.20, 0.86],
-    bgA: [0.38, 0.48, 0.88], bgB: [0.46, 0.36, 0.92], bgC: [0.24, 0.52, 0.96],
+    rayA: [1.00, 0.78, 0.32], rayB: [1.00, 0.22, 0.62],
+    bgA: [0.24, 0.32, 0.72], bgB: [0.34, 0.26, 0.74], bgC: [0.18, 0.42, 0.78],
   },
 };
 
@@ -146,6 +146,7 @@ uniform vec2 u_impulseVel[5];
 uniform float u_impulseAge[5];
 uniform float u_impulseStrength[5];
 varying vec4 v_color;
+varying float v_sparkle;
 
 float sat(float x){return clamp(x,0.,1.);} 
 float smoothPulse(float x){return x*x*(3.0-2.0*x);} 
@@ -171,7 +172,8 @@ void main(){
   hp=hp*breath+flow;
 
   vec2 drift=vec2(sin(t*.026)+.28*sin(t*.014+1.7),cos(t*.024+.5)+.24*sin(t*.012+2.2))*u_scale*.008;
-  float layerScale=1.0 + (a_depth-.5)*.035*smoothstep(.20,1.0,a_s);
+  float innerLayer=smoothstep(.18,.64,a_s)*(1.0-smoothstep(.66,1.0,a_s))*(1.0-a_depth);
+  float layerScale=1.0 + (a_depth-.5)*.045*smoothstep(.20,1.0,a_s) - innerLayer*.055;
   vec2 endp=u_center+hp*u_scale*layerScale+drift*(.25+a_depth*.55);
   vec2 start=u_center+a_core*(1.+sin(t*.20+a_phase*.05)*.012)+drift*.035;
   float reveal=smoothstep(0.0,1.0,u_reveal);
@@ -244,7 +246,7 @@ void main(){
   displacement += normal*micro*(.035+.08*a_depth) * (.25 + .75*u_idleMix) * rippleBoost * reveal;
   displacement += normal*idleRipple*(.15 + .72*tipFlex) * (.09 + .12*a_depth) * u_idleMix * rippleBoost * reveal;
   displacement += tangent*sin(t*.20+a_phase*.21)*(.035+.12*tipBloom)*u_idleMix*reveal;
-  float pulseWave=exp(-pow((a_s-waveFront)/.075,2.0))*beatEnergy*reveal;
+  float pulseWave=exp(-pow((a_s-waveFront)/.062,2.0))*beatEnergy*reveal;
   displacement += normal*pulseWave*(.80+2.40*tipFlex);
 
   vec2 pos=basePos+displacement;
@@ -252,32 +254,33 @@ void main(){
   gl_Position=vec4(clip*vec2(1.,-1.),0.,1.);
   gl_PointSize=a_size*u_dpr;
 
-  float organicTint=sat(a_tint + .12*sin(a_phase*.77+t*.055) + .08*sin(a_depth*5.2+t*.033));
-  float twoTone=smoothstep(.12,.88,organicTint);
-  vec3 driftA=mix(u_rayA,u_rayB,.18+.10*sin(t*.045+a_depth*2.6));
-  vec3 driftB=mix(u_rayB,u_rayA,.14+.08*sin(t*.038+a_phase*.19));
+  float organicTint=sat(a_tint + .10*sin(a_phase*.77+t*.040) + .07*sin(a_depth*5.2+t*.028));
+  float twoTone=smoothstep(.10,.90,organicTint);
+  vec3 driftA=mix(u_rayA,u_rayB,.10+.07*sin(t*.030+a_depth*2.6));
+  vec3 driftB=mix(u_rayB,u_rayA,.08+.06*sin(t*.026+a_phase*.19));
   vec3 col=mix(driftA,driftB,twoTone);
-  float waveGlow=pulseWave*(.32+.42*smoothstep(.35,1.0,a_s));
-  float innerHalo=exp(-pow((a_s-.26)/.15,2.0))*smoothstep(.18,1.0,reveal);
+  float waveGlow=pulseWave*(.24+.34*smoothstep(.48,1.0,a_s));
+  float innerHalo=exp(-pow((a_s-.30)/.19,2.0))*smoothstep(.18,1.0,reveal);
   col=mix(col,vec3(1.0,.94,.98),waveGlow);
-  col=mix(col,vec3(1.0,.88,.98),innerHalo*.10);
+  col=mix(col,vec3(1.0,.90,.98),innerHalo*.12);
   float rootFade=smoothstep(.18,.50,a_s);
-  float layerAlpha=mix(.68,1.18,a_depth);
+  float layerAlpha=mix(.54,1.28,a_depth) + innerLayer*.22;
   float edge=smoothstep(.76,1.0,a_s);
   float sparkleSeed=sin(a_phase*37.13 + floor(t*2.0)*1.73);
-  float sparkle=edge*step(.92,sparkleSeed)*(.18+.50*beatEnergy);
-  float alpha=a_alpha*layerAlpha*mix(.008,.88,pow(a_s,.90))*mix(.10,1.0,rootFade)*smoothstep(.015,.56,reveal);
-  alpha += innerHalo*.010*a_alpha*reveal + sparkle*.07*reveal;
+  float sparkle=edge*step(.965,sparkleSeed)*(.12+.62*beatEnergy);
+  float alpha=a_alpha*layerAlpha*mix(.006,.94,pow(a_s,.92))*mix(.08,1.0,rootFade)*smoothstep(.015,.56,reveal);
+  alpha += innerHalo*.012*a_alpha*reveal + sparkle*.026*reveal;
   float shimmer=.992+.008*sin(t*.28+a_phase*.17+a_s*2.4);
-  shimmer += .004*smoothstep(.84,1.0,a_s)*sin(t*.58+a_phase*.31) + sparkle*.10;
+  shimmer += .003*smoothstep(.84,1.0,a_s)*sin(t*.50+a_phase*.31) + sparkle*.06;
   v_color=vec4(col,alpha*shimmer);
+  v_sparkle=sparkle;
 }`;
 const HEART_FS=`
-precision mediump float; varying vec4 v_color; uniform float u_pointPass;
+precision mediump float; varying vec4 v_color; varying float v_sparkle; uniform float u_pointPass;
 void main(){
   if(u_pointPass>.5){
     vec2 q=gl_PointCoord-.5;float d=length(q);
-    float a=smoothstep(.50,.08,d)*v_color.a;
+    float a=smoothstep(.42,.05,d)*v_color.a*v_sparkle*3.0;
     if(a<.006)discard; gl_FragColor=vec4(v_color.rgb,a);
   } else gl_FragColor=v_color;
 }`;
@@ -319,12 +322,18 @@ function buildGeometry(){
   for(let i=0;i<n;i++){
     // More even angular distribution = smoother carpet-like local response.
     const tt=((i+.35*Math.random())/n)*Math.PI*2;
-    const edge=heartPoint(tt), silhouette=Math.random()<.82;
-    const r=silhouette ? .84+Math.pow(Math.random(),.50)*.16 : Math.pow(Math.random(),.58)*.90;
+    const edge=heartPoint(tt), layerRoll=Math.random();
+    const outerLayer=layerRoll>.36, middleLayer=layerRoll>.15 && layerRoll<=.36;
+    const r=outerLayer
+      ? .84+Math.pow(Math.random(),.50)*.16
+      : middleLayer
+        ? .56+Math.pow(Math.random(),.72)*.26
+        : .30+Math.pow(Math.random(),.82)*.30;
     let hx=edge.x*r, hy=edge.y*r;
     const centralColumn=Math.max(0,1-Math.min(1,Math.abs(hx)/2.35))*Math.max(0,Math.min(1,(hy+10.5)/15.5));
     if(centralColumn>.72 && Math.random()<.34) hx += (Math.random()<.5?-1:1) * (.42 + Math.random()*.72);
-    const phase=Math.random()*Math.PI*2, depth=.15+Math.random()*.85;
+    const phase=Math.random()*Math.PI*2;
+    const depth=outerLayer ? .66+Math.random()*.34 : middleLayer ? .32+Math.random()*.34 : .06+Math.random()*.24;
     const ca=Math.random()*Math.PI*2, cr=.75+Math.pow(Math.random(),1.7)*5.8;
     const coreBias=centralColumn*centralColumn*(Math.random()<.5?-1:1)*(.55+Math.random()*1.20);
     const cx=Math.cos(ca)*cr+coreBias, cy=Math.sin(ca)*cr;
@@ -334,8 +343,8 @@ function buildGeometry(){
     const trunkSoft=bottomness*centerline;
     const tintBase=Math.max(0,Math.min(1,rawTint));
     const tint=0.5 + (tintBase-0.5)*(1-0.15*trunkSoft);
-    const alphaBase=silhouette ? .50+Math.random()*.26 : .18+Math.random()*.24;
-    const sizeBase=silhouette?1.10+Math.random()*.90:.78+Math.random()*.60;
+    const alphaBase=outerLayer ? .48+Math.random()*.28 : middleLayer ? .24+Math.random()*.20 : .12+Math.random()*.13;
+    const sizeBase=outerLayer ? 1.04+Math.random()*.74 : middleLayer ? .78+Math.random()*.46 : .58+Math.random()*.26;
     const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn);
     const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn);
     const write=(arr,base,s)=>{arr[base]=hx;arr[base+1]=hy;arr[base+2]=cx;arr[base+3]=cy;arr[base+4]=tint;arr[base+5]=alpha;arr[base+6]=size;arr[base+7]=phase;arr[base+8]=depth;arr[base+9]=s;};
