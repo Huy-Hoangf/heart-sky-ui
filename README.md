@@ -14,8 +14,9 @@ Static HTML/CSS/JavaScript project. No backend required.
 - Stripe-inspired theme menu with icon-only toggle and compact theme options.
 - Refined heartbeat idle motion with a subtle glow pulse.
 - Softer root fade keeps the heart center from becoming too dense.
+- Centerline ray density is reduced for a softer heart core.
 - Magnetic pointer field makes the rays follow touch with smoother inertia.
-- Background colors are richer and react softly to pointer movement.
+- Background colors are more saturated and react softly to pointer movement.
 
 ## Run
 Open `index.html`, or use VS Code Live Server.
@@ -27,4 +28,4 @@ Deploy the folder as a static site. No build command or environment variables ar
 - Heart rays are split into multiple GPU segments instead of one rigid line.
 - Pointer interaction detects where the cursor touches each ray and bends the downstream part, so the free tip moves more strongly like a shaken string.
 - Pointer velocity launches a damped travelling wave toward the tip.
-- Heart colors are darker/more saturated while backgrounds are lighter/milkier for stronger separation.
+- Heart colors are darker/more saturated while backgrounds keep stronger pastel contrast.

@@ -15,32 +15,32 @@ const themes = {
   predawn: {
     label: 'Pre-dawn', icon: 'orbit',
     rayA: [0.07, 0.20, 1.00], rayB: [0.58, 0.18, 1.00],
-    bgA: [0.87, 0.82, 0.98], bgB: [0.76, 0.66, 0.98], bgC: [0.90, 0.84, 1.00],
+    bgA: [0.82, 0.74, 0.98], bgB: [0.66, 0.54, 0.98], bgC: [0.86, 0.76, 1.00],
   },
   sunrise: {
     label: 'Sunrise', icon: 'sunrise',
     rayA: [1.00, 0.28, 0.46], rayB: [1.00, 0.66, 0.30],
-    bgA: [0.99, 0.80, 0.90], bgB: [1.00, 0.67, 0.55], bgC: [0.82, 0.74, 1.00],
+    bgA: [1.00, 0.72, 0.86], bgB: [1.00, 0.55, 0.40], bgC: [0.76, 0.64, 1.00],
   },
   daytime: {
     label: 'Daytime', icon: 'sun',
     rayA: [0.17, 0.36, 1.00], rayB: [0.03, 0.72, 0.96],
-    bgA: [0.78, 0.88, 1.00], bgB: [0.86, 0.75, 1.00], bgC: [0.66, 0.90, 1.00],
+    bgA: [0.66, 0.82, 1.00], bgB: [0.78, 0.62, 1.00], bgC: [0.48, 0.86, 1.00],
   },
   dusk: {
     label: 'Dusk', icon: 'dusk',
     rayA: [0.36, 0.20, 1.00], rayB: [0.94, 0.25, 0.74],
-    bgA: [0.79, 0.72, 0.98], bgB: [0.98, 0.70, 0.88], bgC: [0.74, 0.82, 1.00],
+    bgA: [0.68, 0.58, 0.98], bgB: [0.99, 0.58, 0.84], bgC: [0.62, 0.74, 1.00],
   },
   sunset: {
     label: 'Sunset', icon: 'sunset',
     rayA: [0.32, 0.16, 1.00], rayB: [1.00, 0.48, 0.39],
-    bgA: [0.80, 0.68, 0.99], bgB: [1.00, 0.60, 0.84], bgC: [1.00, 0.66, 0.50],
+    bgA: [0.70, 0.52, 0.99], bgB: [1.00, 0.48, 0.78], bgC: [1.00, 0.54, 0.34],
   },
   night: {
     label: 'Night', icon: 'moon',
     rayA: [0.06, 0.14, 0.72], rayB: [0.48, 0.28, 1.00],
-    bgA: [0.66, 0.72, 0.94], bgB: [0.72, 0.64, 0.95], bgC: [0.52, 0.70, 1.00],
+    bgA: [0.50, 0.58, 0.92], bgB: [0.58, 0.48, 0.95], bgC: [0.36, 0.60, 1.00],
   },
 };
 
@@ -112,11 +112,11 @@ void main(){
   vec2 mp=vec2((u_pointer.x/u_resolution.x-.5)*asp,.5-u_pointer.y/u_resolution.y);
   float touch=blob(p,mp,.58)*u_pointerStrength;
   float b1=blob(p,c1,1.02), b2=blob(p,c2,.98), b3=blob(p,c3,1.02), b4=blob(p,c4,1.14);
-  vec3 col=vec3(.976,.982,.996);
-  col=mix(col,u_bgA,b1*.82); col=mix(col,u_bgB,b2*.76); col=mix(col,u_bgC,b3*.72);
-  col=mix(col,mix(u_bgA,u_bgB,.5),b4*.42);
-  col=mix(col,mix(u_bgB,u_bgC,.46),touch*.34);
-  col=mix(col,vec3(1.),.018);
+  vec3 col=vec3(.945,.955,.990);
+  col=mix(col,u_bgA,b1*.94); col=mix(col,u_bgB,b2*.88); col=mix(col,u_bgC,b3*.84);
+  col=mix(col,mix(u_bgA,u_bgB,.5),b4*.56);
+  col=mix(col,mix(u_bgB,u_bgC,.46),touch*.42);
+  col=mix(col,vec3(1.),.006);
   gl_FragColor=vec4(col,1.);
 }`;
 const bgProgram=makeProgram(BG_VS,BG_FS);
@@ -304,10 +304,13 @@ function buildGeometry(){
     const tt=((i+.35*Math.random())/n)*Math.PI*2;
     const edge=heartPoint(tt), silhouette=Math.random()<.82;
     const r=silhouette ? .84+Math.pow(Math.random(),.50)*.16 : Math.pow(Math.random(),.58)*.90;
-    const hx=edge.x*r, hy=edge.y*r;
+    let hx=edge.x*r, hy=edge.y*r;
+    const centralColumn=Math.max(0,1-Math.min(1,Math.abs(hx)/2.35))*Math.max(0,Math.min(1,(hy+10.5)/15.5));
+    if(centralColumn>.72 && Math.random()<.34) hx += (Math.random()<.5?-1:1) * (.42 + Math.random()*.72);
     const phase=Math.random()*Math.PI*2, depth=.15+Math.random()*.85;
     const ca=Math.random()*Math.PI*2, cr=.75+Math.pow(Math.random(),1.7)*5.8;
-    const cx=Math.cos(ca)*cr, cy=Math.sin(ca)*cr;
+    const coreBias=centralColumn*centralColumn*(Math.random()<.5?-1:1)*(.55+Math.random()*1.20);
+    const cx=Math.cos(ca)*cr+coreBias, cy=Math.sin(ca)*cr;
     const rawTint=Math.random()*0.92 + 0.04 + (Math.random()-0.5)*0.10;
     const bottomness=Math.max(0,Math.min(1,(hy-1.5)/12.0));
     const centerline=Math.max(0,1-Math.min(1,Math.abs(hx)/4.8));
@@ -316,8 +319,8 @@ function buildGeometry(){
     const tint=0.5 + (tintBase-0.5)*(1-0.15*trunkSoft);
     const alphaBase=silhouette ? .50+Math.random()*.26 : .18+Math.random()*.24;
     const sizeBase=silhouette?1.10+Math.random()*.90:.78+Math.random()*.60;
-    const alpha=alphaBase*(1-0.82*trunkSoft);
-    const size=sizeBase*(1-0.34*trunkSoft);
+    const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn);
+    const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn);
     const write=(arr,base,s)=>{arr[base]=hx;arr[base+1]=hy;arr[base+2]=cx;arr[base+3]=cy;arr[base+4]=tint;arr[base+5]=alpha;arr[base+6]=size;arr[base+7]=phase;arr[base+8]=depth;arr[base+9]=s;};
     for(let j=0;j<segs;j++){
       const s0=j/segs,s1=(j+1)/segs;
