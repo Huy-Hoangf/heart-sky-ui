@@ -15,10 +15,39 @@
     <div class="ambient ambient-b"></div>
 
     <div class="launch-wrap" id="launchWrap">
-      <button class="launch-button" id="launchButton" type="button" aria-label="Bung trái tim">
-        click me
+      <button class="launch-button" id="launchButton" type="button" aria-label="Giữ để bung trái tim">
+        <span class="launch-ring" aria-hidden="true"></span>
+        <span class="launch-copy">click me</span>
       </button>
     </div>
+
+    <svg class="constellation" id="constellation" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <g class="constellation-lines">
+        <line x1="40" y1="32" x2="47" y2="25"></line>
+        <line x1="47" y1="25" x2="54" y2="32"></line>
+        <line x1="54" y1="32" x2="61" y2="25"></line>
+        <line x1="35" y1="48" x2="44" y2="41"></line>
+        <line x1="44" y1="41" x2="56" y2="42"></line>
+        <line x1="56" y1="42" x2="66" y2="49"></line>
+        <line x1="42" y1="64" x2="50" y2="71"></line>
+        <line x1="50" y1="71" x2="58" y2="64"></line>
+      </g>
+      <g class="constellation-stars">
+        <circle cx="40" cy="32" r="0.45"></circle>
+        <circle cx="47" cy="25" r="0.52"></circle>
+        <circle cx="54" cy="32" r="0.45"></circle>
+        <circle cx="61" cy="25" r="0.50"></circle>
+        <circle cx="35" cy="48" r="0.46"></circle>
+        <circle cx="44" cy="41" r="0.42"></circle>
+        <circle cx="56" cy="42" r="0.42"></circle>
+        <circle cx="66" cy="49" r="0.48"></circle>
+        <circle cx="42" cy="64" r="0.42"></circle>
+        <circle cx="50" cy="71" r="0.50"></circle>
+        <circle cx="58" cy="64" r="0.42"></circle>
+      </g>
+    </svg>
+
+    <div class="ending-message" id="endingMessage" aria-hidden="true">FOR U</div>
 
     <div class="theme-menu-wrap">
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="Mở menu màu" aria-expanded="false">

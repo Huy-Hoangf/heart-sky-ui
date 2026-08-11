@@ -6,6 +6,7 @@ const themeIcon = document.getElementById('themeIcon');
 const launchWrap = document.getElementById('launchWrap');
 const launchButton = document.getElementById('launchButton');
 const buttons = [...document.querySelectorAll('.mode-btn')];
+const HOLD_DURATION = 1500;
 
 // 2-tone heart palettes: stronger/saturated heart, softer pastel background.
 const themes = {
@@ -49,6 +50,8 @@ let bgA = [...themes.daytime.bgA], bgB = [...themes.daytime.bgB], bgC = [...them
 let targetRayA=[...rayA], targetRayB=[...rayB], targetBgA=[...bgA], targetBgB=[...bgB], targetBgC=[...bgC];
 let idleMix = 1, idleMixV = 0, idleTarget = 1;
 let launched = false, reveal = 0, revealV = 0, revealTarget = 0;
+let ending = false, endingMix = 0, endingMixV = 0;
+let holdActive = false, holdReady = false, holdStart = 0, holdFrame = 0;
 
 const pointer = {
   tx: innerWidth*.5, ty: innerHeight*.5,
@@ -126,7 +129,7 @@ precision highp float;
 attribute vec2 a_heart; attribute vec2 a_core;
 attribute float a_tint,a_alpha,a_size,a_phase,a_depth,a_s;
 uniform vec2 u_resolution,u_center;
-uniform float u_scale,u_time,u_dpr,u_idleMix,u_reveal;
+uniform float u_scale,u_time,u_dpr,u_idleMix,u_reveal,u_endingMix;
 uniform vec3 u_rayA,u_rayB;
 uniform vec2 u_impulsePos[5];
 uniform vec2 u_impulseVel[5];
@@ -143,15 +146,16 @@ void main(){
 
   // Default auto motion: a soft continuous ripple. It is visible enough to read,
   // but fades out automatically while the user is actively interacting.
-  float rippleBoost=1.18;
-  float breath=1.0 + (sin(t*.28)*.0060 + sin(t*.115+1.1)*.0026) * u_idleMix;
+  float calm=mix(1.0,.48,u_endingMix);
+  float rippleBoost=mix(1.18,.62,u_endingMix);
+  float breath=1.0 + (sin(t*.28*calm)*.0060 + sin(t*.115*calm+1.1)*.0026) * u_idleMix;
   float nx=sin(hp.y*.086+t*.27+a_phase*.082);
   float ny=cos(hp.x*.078-t*.22+a_phase*.071);
   float sway=sin(t*.34+a_phase*.19+a_depth*2.1);
   vec2 flow=(vec2(nx,ny)*(.024+a_depth*.012) + vec2(sway*.010,sin(t*.25+a_phase*.13)*.006)) * u_idleMix;
   hp=hp*breath+flow;
 
-  vec2 drift=vec2(sin(t*.050)+.28*sin(t*.021+1.7),cos(t*.046+.5)+.24*sin(t*.019+2.2))*u_scale*.017;
+  vec2 drift=vec2(sin(t*.050*calm)+.28*sin(t*.021*calm+1.7),cos(t*.046*calm+.5)+.24*sin(t*.019*calm+2.2))*u_scale*.017;
   vec2 endp=u_center+hp*u_scale+drift*(.25+a_depth*.55);
   vec2 start=u_center+a_core*(1.+sin(t*.20+a_phase*.05)*.012)+drift*.035;
   float reveal=smoothstep(0.0,1.0,u_reveal);
@@ -205,16 +209,16 @@ void main(){
 
   // Tip flexibility + subtle auto-ripple make the default motion easier to notice.
   float tipFlex=a_s*a_s;
-  float micro=sin(t*.20+a_phase*.14+a_s*1.62)*(.13+.48*tipFlex);
-  float wave1 = sin(t*1.05 - a_s*8.5 + a_phase*.48);
-  float wave2 = sin(t*.70 + a_s*5.8 + a_phase*.33);
-  float wave3 = sin(t*.42 + hp.x*.060 - hp.y*.041 + a_phase*.20);
-  float wave4 = sin(t*.31 + a_depth*4.4 + a_s*2.2);
+  float micro=sin(t*.20*calm+a_phase*.14+a_s*1.62)*(.13+.48*tipFlex);
+  float wave1 = sin(t*1.05*calm - a_s*8.5 + a_phase*.48);
+  float wave2 = sin(t*.70*calm + a_s*5.8 + a_phase*.33);
+  float wave3 = sin(t*.42*calm + hp.x*.060 - hp.y*.041 + a_phase*.20);
+  float wave4 = sin(t*.31*calm + a_depth*4.4 + a_s*2.2);
   float idleRipple = wave1*.47 + wave2*.28 + wave3*.15 + wave4*.10;
   float tipBloom=smoothstep(.42,1.0,a_s);
   displacement += normal*micro*(.07+.16*a_depth) * (.20 + .80*u_idleMix) * rippleBoost * reveal;
   displacement += normal*idleRipple*(.26 + 1.32*tipFlex) * (.17 + .20*a_depth) * u_idleMix * rippleBoost * reveal;
-  displacement += tangent*sin(t*.46+a_phase*.21)*(.10+.30*tipBloom)*u_idleMix*reveal;
+  displacement += tangent*sin(t*.46*calm+a_phase*.21)*(.10+.30*tipBloom)*u_idleMix*reveal*(1.0-u_endingMix*.55);
 
   vec2 pos=basePos+displacement;
   vec2 clip=(pos/u_resolution)*2.-1.;
@@ -224,8 +228,8 @@ void main(){
   float twoTone=smoothstep(.16,.84,a_tint);
   vec3 col=mix(u_rayA,u_rayB,twoTone);
   float alpha=a_alpha*mix(.07,1.0,pow(a_s,.80))*smoothstep(.015,.56,reveal);
-  float shimmer=.975+.025*sin(t*.62+a_phase*.17+a_s*3.1);
-  shimmer += .018*smoothstep(.78,1.0,a_s)*sin(t*1.35+a_phase*.31);
+  float shimmer=.975+.025*sin(t*.62*calm+a_phase*.17+a_s*3.1);
+  shimmer += .018*smoothstep(.78,1.0,a_s)*sin(t*1.35*calm+a_phase*.31);
   v_color=vec4(col,alpha*shimmer);
 }`;
 const HEART_FS=`
@@ -249,7 +253,7 @@ const heartLoc={
   res:gl.getUniformLocation(heartProgram,'u_resolution'), center:gl.getUniformLocation(heartProgram,'u_center'),
   scale:gl.getUniformLocation(heartProgram,'u_scale'), time:gl.getUniformLocation(heartProgram,'u_time'),
   rayA:gl.getUniformLocation(heartProgram,'u_rayA'), rayB:gl.getUniformLocation(heartProgram,'u_rayB'),
-  dpr:gl.getUniformLocation(heartProgram,'u_dpr'), idleMix:gl.getUniformLocation(heartProgram,'u_idleMix'), reveal:gl.getUniformLocation(heartProgram,'u_reveal'), pointPass:gl.getUniformLocation(heartProgram,'u_pointPass'),
+  dpr:gl.getUniformLocation(heartProgram,'u_dpr'), idleMix:gl.getUniformLocation(heartProgram,'u_idleMix'), reveal:gl.getUniformLocation(heartProgram,'u_reveal'), endingMix:gl.getUniformLocation(heartProgram,'u_endingMix'), pointPass:gl.getUniformLocation(heartProgram,'u_pointPass'),
   impulsePos:gl.getUniformLocation(heartProgram,'u_impulsePos[0]'),
   impulseVel:gl.getUniformLocation(heartProgram,'u_impulseVel[0]'),
   impulseAge:gl.getUniformLocation(heartProgram,'u_impulseAge[0]'),
@@ -263,7 +267,7 @@ function bindHeartAttributes(buffer){
 }
 
 function heartPoint(t){const s=Math.sin(t);return{x:16*s*s*s,y:-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))};}
-function particleCount(){if(W<=430)return 760;if(W<=760)return 940;if(W<=1200)return 1320;return 1600;}
+function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)return 920;return 1120;}
 function segmentsPerRay(){return W<=760?14:18;}
 
 function buildGeometry(){
@@ -378,7 +382,7 @@ function drawBackground(){
 function setHeartUniforms(){
   const {cx,cy,scale}=layout();
   gl.uniform2f(heartLoc.res,W,H);gl.uniform2f(heartLoc.center,cx,cy);gl.uniform1f(heartLoc.scale,scale);gl.uniform1f(heartLoc.time,elapsed);
-  gl.uniform3fv(heartLoc.rayA,rayA);gl.uniform3fv(heartLoc.rayB,rayB);gl.uniform1f(heartLoc.dpr,dpr);gl.uniform1f(heartLoc.idleMix,idleMix);gl.uniform1f(heartLoc.reveal,reveal);
+  gl.uniform3fv(heartLoc.rayA,rayA);gl.uniform3fv(heartLoc.rayB,rayB);gl.uniform1f(heartLoc.dpr,dpr);gl.uniform1f(heartLoc.idleMix,idleMix);gl.uniform1f(heartLoc.reveal,reveal);gl.uniform1f(heartLoc.endingMix,endingMix);
   packImpulses();
   gl.uniform2fv(heartLoc.impulsePos,impulsePos);gl.uniform2fv(heartLoc.impulseVel,impulseVel);
   gl.uniform1fv(heartLoc.impulseAge,impulseAge);gl.uniform1fv(heartLoc.impulseStrength,impulseStrength);
@@ -393,6 +397,7 @@ function drawHeart(){
 function render(now){
   let dt=(now-lastTime)/1000;lastTime=now;dt=Math.min(Math.max(dt,1/240),1/30);elapsed+=dt;
   [reveal,revealV]=spring(reveal,revealV,revealTarget,dt,1.08,.90);
+  [endingMix,endingMixV]=spring(endingMix,endingMixV,ending?1:0,dt,.72,.96);
   updatePointer(dt);
   smoothColor(rayA,targetRayA,dt,1.75);smoothColor(rayB,targetRayB,dt,1.75);
   smoothColor(bgA,targetBgA,dt,.72);smoothColor(bgB,targetBgB,dt,.72);smoothColor(bgC,targetBgC,dt,.72);
@@ -417,12 +422,88 @@ function launchHeart(){
   if(launched) return;
   launched=true;
   revealTarget=1;
+  ending=false;
   app.classList.remove('awaiting-launch');
   app.classList.add('launched');
+  app.classList.remove('ending');
+  launchButton?.classList.remove('holding','ready');
+  launchButton?.style.setProperty('--hold','1');
   window.setTimeout(()=>launchWrap?.setAttribute('aria-hidden','true'),780);
+  window.setTimeout(()=>{
+    ending=true;
+    app.classList.add('ending');
+  },6200);
 }
 
-launchButton?.addEventListener('click',launchHeart);
+function setHoldProgress(value){
+  launchButton?.style.setProperty('--hold',String(Math.max(0,Math.min(1,value))));
+}
+
+function stopHoldAnimation(){
+  if(holdFrame) cancelAnimationFrame(holdFrame);
+  holdFrame=0;
+}
+
+function updateHold(now){
+  if(!holdActive || launched) return;
+  const progress=Math.min(1,(now-holdStart)/HOLD_DURATION);
+  setHoldProgress(progress);
+  if(progress>=1 && !holdReady){
+    holdReady=true;
+    launchButton?.classList.add('ready');
+  }
+  holdFrame=requestAnimationFrame(updateHold);
+}
+
+function startHold(e){
+  if(launched) return;
+  e?.preventDefault();
+  if(e?.pointerId !== undefined) launchButton?.setPointerCapture?.(e.pointerId);
+  holdActive=true;
+  holdReady=false;
+  holdStart=performance.now();
+  launchButton?.classList.add('holding');
+  launchButton?.classList.remove('ready');
+  setHoldProgress(0);
+  stopHoldAnimation();
+  holdFrame=requestAnimationFrame(updateHold);
+}
+
+function releaseHold(e){
+  if(!holdActive || launched) return;
+  e?.preventDefault();
+  holdActive=false;
+  stopHoldAnimation();
+  const progress=Math.min(1,(performance.now()-holdStart)/HOLD_DURATION);
+  if(progress>=1 || holdReady){
+    launchHeart();
+    return;
+  }
+  holdReady=false;
+  launchButton?.classList.remove('holding','ready');
+  setHoldProgress(0);
+}
+
+function cancelHold(){
+  if(!holdActive || launched) return;
+  holdActive=false;
+  holdReady=false;
+  stopHoldAnimation();
+  launchButton?.classList.remove('holding','ready');
+  setHoldProgress(0);
+}
+
+launchButton?.addEventListener('pointerdown',startHold);
+launchButton?.addEventListener('pointerup',releaseHold);
+launchButton?.addEventListener('pointercancel',cancelHold);
+launchButton?.addEventListener('pointerleave',cancelHold);
+launchButton?.addEventListener('click',e=>e.preventDefault());
+launchButton?.addEventListener('keydown',e=>{
+  if((e.key===' ' || e.key==='Enter') && !holdActive) startHold(e);
+});
+launchButton?.addEventListener('keyup',e=>{
+  if(e.key===' ' || e.key==='Enter') releaseHold(e);
+});
 
 function setPointer(x,y,on=true){
   if(!launched) return;
