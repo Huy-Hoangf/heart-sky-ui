@@ -8,6 +8,8 @@ const launchButton = document.getElementById('launchButton');
 const buttons = [...document.querySelectorAll('.mode-btn')];
 const HOLD_DURATION = 200;
 
+window.addEventListener('error', () => app?.classList.add('render-fallback'));
+
 // 2-tone heart palettes: stronger/saturated heart, softer pastel background.
 const themes = {
   predawn: {
@@ -179,6 +181,7 @@ void main(){
 
   vec2 basePos=mix(start,endp,a_s);
   vec2 displacement=vec2(0.0);
+  float tipFlex=a_s*a_s;
 
   // Multiple decaying brush samples create a soft temporal trail rather than a sharp kink.
   for(int i=0;i<5;i++){
@@ -229,7 +232,6 @@ void main(){
   displacement += normal*sin(pointerDistance*.018-t*3.0+a_phase*.23)*field*field*u_pointerStrength*(1.6+3.0*tipFlex)*reveal;
 
   // Tip flexibility + subtle auto-ripple make the default motion easier to notice.
-  float tipFlex=a_s*a_s;
   float micro=sin(t*.13+a_phase*.14+a_s*1.62)*(.07+.24*tipFlex);
   float wave1 = sin(t*.42 - a_s*6.2 + a_phase*.48);
   float wave2 = sin(t*.30 + a_s*4.5 + a_phase*.33);

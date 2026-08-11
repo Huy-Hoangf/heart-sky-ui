@@ -70,6 +70,10 @@ button { font: inherit; -webkit-tap-highlight-color: transparent; }
   animation: heartbeat-aura 1.18s ease-in-out .75s infinite;
 }
 
+.app.render-fallback #heartCanvas {
+  opacity: 0;
+}
+
 .theme-menu-wrap,
 .launch-wrap { position: absolute; z-index: 3; }
 
