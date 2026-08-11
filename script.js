@@ -6,7 +6,7 @@ const themeIcon = document.getElementById('themeIcon');
 const launchWrap = document.getElementById('launchWrap');
 const launchButton = document.getElementById('launchButton');
 const buttons = [...document.querySelectorAll('.mode-btn')];
-const HOLD_DURATION = 1500;
+const HOLD_DURATION = 750;
 
 // 2-tone heart palettes: stronger/saturated heart, softer pastel background.
 const themes = {
@@ -50,7 +50,6 @@ let bgA = [...themes.daytime.bgA], bgB = [...themes.daytime.bgB], bgC = [...them
 let targetRayA=[...rayA], targetRayB=[...rayB], targetBgA=[...bgA], targetBgB=[...bgB], targetBgC=[...bgC];
 let idleMix = 1, idleMixV = 0, idleTarget = 1;
 let launched = false, reveal = 0, revealV = 0, revealTarget = 0;
-let ending = false, endingMix = 0, endingMixV = 0;
 let holdActive = false, holdReady = false, holdStart = 0, holdFrame = 0;
 
 const pointer = {
@@ -129,7 +128,7 @@ precision highp float;
 attribute vec2 a_heart; attribute vec2 a_core;
 attribute float a_tint,a_alpha,a_size,a_phase,a_depth,a_s;
 uniform vec2 u_resolution,u_center;
-uniform float u_scale,u_time,u_dpr,u_idleMix,u_reveal,u_endingMix;
+uniform float u_scale,u_time,u_dpr,u_idleMix,u_reveal;
 uniform vec3 u_rayA,u_rayB;
 uniform vec2 u_impulsePos[5];
 uniform vec2 u_impulseVel[5];
@@ -146,16 +145,19 @@ void main(){
 
   // Default auto motion: a soft continuous ripple. It is visible enough to read,
   // but fades out automatically while the user is actively interacting.
-  float calm=mix(1.0,.48,u_endingMix);
-  float rippleBoost=mix(1.18,.62,u_endingMix);
-  float breath=1.0 + (sin(t*.28*calm)*.0060 + sin(t*.115*calm+1.1)*.0026) * u_idleMix;
-  float nx=sin(hp.y*.086+t*.27+a_phase*.082);
-  float ny=cos(hp.x*.078-t*.22+a_phase*.071);
-  float sway=sin(t*.34+a_phase*.19+a_depth*2.1);
-  vec2 flow=(vec2(nx,ny)*(.024+a_depth*.012) + vec2(sway*.010,sin(t*.25+a_phase*.13)*.006)) * u_idleMix;
+  float beatPhase=mod(t,1.18);
+  float beatA=exp(-pow((beatPhase-.10)/.052,2.0));
+  float beatB=exp(-pow((beatPhase-.25)/.072,2.0));
+  float heartbeat=(beatA*.038 + beatB*.024) * u_idleMix;
+  float rippleBoost=.58;
+  float breath=1.0 + heartbeat + (sin(t*.18)*.0022 + sin(t*.075+1.1)*.0012) * u_idleMix;
+  float nx=sin(hp.y*.070+t*.14+a_phase*.074);
+  float ny=cos(hp.x*.064-t*.12+a_phase*.066);
+  float sway=sin(t*.16+a_phase*.19+a_depth*2.1);
+  vec2 flow=(vec2(nx,ny)*(.013+a_depth*.007) + vec2(sway*.004,sin(t*.13+a_phase*.13)*.003)) * u_idleMix;
   hp=hp*breath+flow;
 
-  vec2 drift=vec2(sin(t*.050*calm)+.28*sin(t*.021*calm+1.7),cos(t*.046*calm+.5)+.24*sin(t*.019*calm+2.2))*u_scale*.017;
+  vec2 drift=vec2(sin(t*.026)+.28*sin(t*.014+1.7),cos(t*.024+.5)+.24*sin(t*.012+2.2))*u_scale*.008;
   vec2 endp=u_center+hp*u_scale+drift*(.25+a_depth*.55);
   vec2 start=u_center+a_core*(1.+sin(t*.20+a_phase*.05)*.012)+drift*.035;
   float reveal=smoothstep(0.0,1.0,u_reveal);
@@ -209,16 +211,15 @@ void main(){
 
   // Tip flexibility + subtle auto-ripple make the default motion easier to notice.
   float tipFlex=a_s*a_s;
-  float micro=sin(t*.20*calm+a_phase*.14+a_s*1.62)*(.13+.48*tipFlex);
-  float wave1 = sin(t*1.05*calm - a_s*8.5 + a_phase*.48);
-  float wave2 = sin(t*.70*calm + a_s*5.8 + a_phase*.33);
-  float wave3 = sin(t*.42*calm + hp.x*.060 - hp.y*.041 + a_phase*.20);
-  float wave4 = sin(t*.31*calm + a_depth*4.4 + a_s*2.2);
-  float idleRipple = wave1*.47 + wave2*.28 + wave3*.15 + wave4*.10;
+  float micro=sin(t*.13+a_phase*.14+a_s*1.62)*(.07+.24*tipFlex);
+  float wave1 = sin(t*.42 - a_s*6.2 + a_phase*.48);
+  float wave2 = sin(t*.30 + a_s*4.5 + a_phase*.33);
+  float wave3 = sin(t*.22 + hp.x*.045 - hp.y*.030 + a_phase*.20);
+  float idleRipple = wave1*.54 + wave2*.32 + wave3*.14;
   float tipBloom=smoothstep(.42,1.0,a_s);
-  displacement += normal*micro*(.07+.16*a_depth) * (.20 + .80*u_idleMix) * rippleBoost * reveal;
-  displacement += normal*idleRipple*(.26 + 1.32*tipFlex) * (.17 + .20*a_depth) * u_idleMix * rippleBoost * reveal;
-  displacement += tangent*sin(t*.46*calm+a_phase*.21)*(.10+.30*tipBloom)*u_idleMix*reveal*(1.0-u_endingMix*.55);
+  displacement += normal*micro*(.035+.08*a_depth) * (.25 + .75*u_idleMix) * rippleBoost * reveal;
+  displacement += normal*idleRipple*(.15 + .72*tipFlex) * (.09 + .12*a_depth) * u_idleMix * rippleBoost * reveal;
+  displacement += tangent*sin(t*.20+a_phase*.21)*(.035+.12*tipBloom)*u_idleMix*reveal;
 
   vec2 pos=basePos+displacement;
   vec2 clip=(pos/u_resolution)*2.-1.;
@@ -227,9 +228,10 @@ void main(){
 
   float twoTone=smoothstep(.16,.84,a_tint);
   vec3 col=mix(u_rayA,u_rayB,twoTone);
-  float alpha=a_alpha*mix(.07,1.0,pow(a_s,.80))*smoothstep(.015,.56,reveal);
-  float shimmer=.975+.025*sin(t*.62*calm+a_phase*.17+a_s*3.1);
-  shimmer += .018*smoothstep(.78,1.0,a_s)*sin(t*1.35*calm+a_phase*.31);
+  float rootFade=smoothstep(.10,.38,a_s);
+  float alpha=a_alpha*mix(.012,.92,pow(a_s,.88))*mix(.20,1.0,rootFade)*smoothstep(.015,.56,reveal);
+  float shimmer=.992+.008*sin(t*.28+a_phase*.17+a_s*2.4);
+  shimmer += .006*smoothstep(.84,1.0,a_s)*sin(t*.58+a_phase*.31);
   v_color=vec4(col,alpha*shimmer);
 }`;
 const HEART_FS=`
@@ -253,7 +255,7 @@ const heartLoc={
   res:gl.getUniformLocation(heartProgram,'u_resolution'), center:gl.getUniformLocation(heartProgram,'u_center'),
   scale:gl.getUniformLocation(heartProgram,'u_scale'), time:gl.getUniformLocation(heartProgram,'u_time'),
   rayA:gl.getUniformLocation(heartProgram,'u_rayA'), rayB:gl.getUniformLocation(heartProgram,'u_rayB'),
-  dpr:gl.getUniformLocation(heartProgram,'u_dpr'), idleMix:gl.getUniformLocation(heartProgram,'u_idleMix'), reveal:gl.getUniformLocation(heartProgram,'u_reveal'), endingMix:gl.getUniformLocation(heartProgram,'u_endingMix'), pointPass:gl.getUniformLocation(heartProgram,'u_pointPass'),
+  dpr:gl.getUniformLocation(heartProgram,'u_dpr'), idleMix:gl.getUniformLocation(heartProgram,'u_idleMix'), reveal:gl.getUniformLocation(heartProgram,'u_reveal'), pointPass:gl.getUniformLocation(heartProgram,'u_pointPass'),
   impulsePos:gl.getUniformLocation(heartProgram,'u_impulsePos[0]'),
   impulseVel:gl.getUniformLocation(heartProgram,'u_impulseVel[0]'),
   impulseAge:gl.getUniformLocation(heartProgram,'u_impulseAge[0]'),
@@ -282,7 +284,7 @@ function buildGeometry(){
     const r=silhouette ? .84+Math.pow(Math.random(),.50)*.16 : Math.pow(Math.random(),.58)*.90;
     const hx=edge.x*r, hy=edge.y*r;
     const phase=Math.random()*Math.PI*2, depth=.15+Math.random()*.85;
-    const ca=Math.random()*Math.PI*2, cr=Math.pow(Math.random(),2.8)*4.3;
+    const ca=Math.random()*Math.PI*2, cr=.75+Math.pow(Math.random(),1.7)*5.8;
     const cx=Math.cos(ca)*cr, cy=Math.sin(ca)*cr;
     const rawTint=Math.random()*0.92 + 0.04 + (Math.random()-0.5)*0.10;
     const bottomness=Math.max(0,Math.min(1,(hy-1.5)/12.0));
@@ -292,8 +294,8 @@ function buildGeometry(){
     const tint=0.5 + (tintBase-0.5)*(1-0.15*trunkSoft);
     const alphaBase=silhouette ? .50+Math.random()*.26 : .18+Math.random()*.24;
     const sizeBase=silhouette?1.10+Math.random()*.90:.78+Math.random()*.60;
-    const alpha=alphaBase*(1-0.62*trunkSoft);
-    const size=sizeBase*(1-0.26*trunkSoft);
+    const alpha=alphaBase*(1-0.82*trunkSoft);
+    const size=sizeBase*(1-0.34*trunkSoft);
     const write=(arr,base,s)=>{arr[base]=hx;arr[base+1]=hy;arr[base+2]=cx;arr[base+3]=cy;arr[base+4]=tint;arr[base+5]=alpha;arr[base+6]=size;arr[base+7]=phase;arr[base+8]=depth;arr[base+9]=s;};
     for(let j=0;j<segs;j++){
       const s0=j/segs,s1=(j+1)/segs;
@@ -382,7 +384,7 @@ function drawBackground(){
 function setHeartUniforms(){
   const {cx,cy,scale}=layout();
   gl.uniform2f(heartLoc.res,W,H);gl.uniform2f(heartLoc.center,cx,cy);gl.uniform1f(heartLoc.scale,scale);gl.uniform1f(heartLoc.time,elapsed);
-  gl.uniform3fv(heartLoc.rayA,rayA);gl.uniform3fv(heartLoc.rayB,rayB);gl.uniform1f(heartLoc.dpr,dpr);gl.uniform1f(heartLoc.idleMix,idleMix);gl.uniform1f(heartLoc.reveal,reveal);gl.uniform1f(heartLoc.endingMix,endingMix);
+  gl.uniform3fv(heartLoc.rayA,rayA);gl.uniform3fv(heartLoc.rayB,rayB);gl.uniform1f(heartLoc.dpr,dpr);gl.uniform1f(heartLoc.idleMix,idleMix);gl.uniform1f(heartLoc.reveal,reveal);
   packImpulses();
   gl.uniform2fv(heartLoc.impulsePos,impulsePos);gl.uniform2fv(heartLoc.impulseVel,impulseVel);
   gl.uniform1fv(heartLoc.impulseAge,impulseAge);gl.uniform1fv(heartLoc.impulseStrength,impulseStrength);
@@ -397,7 +399,6 @@ function drawHeart(){
 function render(now){
   let dt=(now-lastTime)/1000;lastTime=now;dt=Math.min(Math.max(dt,1/240),1/30);elapsed+=dt;
   [reveal,revealV]=spring(reveal,revealV,revealTarget,dt,1.08,.90);
-  [endingMix,endingMixV]=spring(endingMix,endingMixV,ending?1:0,dt,.72,.96);
   updatePointer(dt);
   smoothColor(rayA,targetRayA,dt,1.75);smoothColor(rayB,targetRayB,dt,1.75);
   smoothColor(bgA,targetBgA,dt,.72);smoothColor(bgB,targetBgB,dt,.72);smoothColor(bgC,targetBgC,dt,.72);
@@ -422,17 +423,11 @@ function launchHeart(){
   if(launched) return;
   launched=true;
   revealTarget=1;
-  ending=false;
   app.classList.remove('awaiting-launch');
   app.classList.add('launched');
-  app.classList.remove('ending');
   launchButton?.classList.remove('holding','ready');
   launchButton?.style.setProperty('--hold','1');
   window.setTimeout(()=>launchWrap?.setAttribute('aria-hidden','true'),780);
-  window.setTimeout(()=>{
-    ending=true;
-    app.classList.add('ending');
-  },6200);
 }
 
 function setHoldProgress(value){
