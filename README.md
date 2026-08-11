@@ -1,4 +1,4 @@
-# Hà Chang — Motion Edition
+# Motion Heart
 
 Static HTML/CSS/JavaScript project. No backend required.
 
@@ -11,7 +11,8 @@ Static HTML/CSS/JavaScript project. No backend required.
 - No outline around the heart.
 - Theme menu remains compact.
 - Opens with a single `click me` button, then smoothly blooms into the heart.
-- Idle ripple is slightly more visible while staying subtle.
+- Stripe-inspired theme menu with icon-only toggle and compact theme options.
+- Idle ripple/shimmer is more visible while staying subtle.
 
 ## Run
 Open `index.html`, or use VS Code Live Server.

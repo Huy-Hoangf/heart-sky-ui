@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#f7f2ff" />
-  <title>Hà Chang</title>
+  <title>Motion Heart</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -20,24 +20,18 @@
       </button>
     </div>
 
-    <section class="intro" aria-label="Tiêu đề">
-      <h1>Hà Chang</h1>
-    </section>
-
     <div class="theme-menu-wrap">
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="Mở menu màu" aria-expanded="false">
-        <span class="theme-dot" id="themeDot"></span>
-        <span class="theme-label" id="themeLabel">Daytime</span>
-        <span class="chevron">⌄</span>
+        <span class="theme-symbol icon-sun" id="themeIcon" aria-hidden="true"></span>
       </button>
 
       <nav class="mode-panel closed" id="modePanel" aria-label="Chọn màu sắc">
-        <button class="mode-btn" data-theme="predawn" type="button"><span class="swatch swatch-predawn"></span><b>Pre-dawn</b></button>
-        <button class="mode-btn" data-theme="sunrise" type="button"><span class="swatch swatch-sunrise"></span><b>Sunrise</b></button>
-        <button class="mode-btn active" data-theme="daytime" type="button"><span class="swatch swatch-daytime"></span><b>Daytime</b></button>
-        <button class="mode-btn" data-theme="dusk" type="button"><span class="swatch swatch-dusk"></span><b>Dusk</b></button>
-        <button class="mode-btn" data-theme="sunset" type="button"><span class="swatch swatch-sunset"></span><b>Sunset</b></button>
-        <button class="mode-btn" data-theme="night" type="button"><span class="swatch swatch-night"></span><b>Night</b></button>
+        <button class="mode-btn" data-theme="predawn" type="button"><span class="mode-icon icon-orbit" aria-hidden="true"></span><b>Pre-dawn</b></button>
+        <button class="mode-btn" data-theme="sunrise" type="button"><span class="mode-icon icon-sunrise" aria-hidden="true"></span><b>Sunrise</b></button>
+        <button class="mode-btn active" data-theme="daytime" type="button"><span class="mode-icon icon-sun" aria-hidden="true"></span><b>Daytime</b></button>
+        <button class="mode-btn" data-theme="dusk" type="button"><span class="mode-icon icon-dusk" aria-hidden="true"></span><b>Dusk</b></button>
+        <button class="mode-btn" data-theme="sunset" type="button"><span class="mode-icon icon-sunset" aria-hidden="true"></span><b>Sunset</b></button>
+        <button class="mode-btn" data-theme="night" type="button"><span class="mode-icon icon-moon" aria-hidden="true"></span><b>Night</b></button>
       </nav>
     </div>
   </main>

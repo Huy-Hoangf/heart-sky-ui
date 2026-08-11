@@ -2,44 +2,42 @@ const canvas = document.getElementById('heartCanvas');
 const app = document.getElementById('app');
 const modePanel = document.getElementById('modePanel');
 const themeToggle = document.getElementById('themeToggle');
-const themeLabel = document.getElementById('themeLabel');
+const themeIcon = document.getElementById('themeIcon');
 const launchWrap = document.getElementById('launchWrap');
 const launchButton = document.getElementById('launchButton');
 const buttons = [...document.querySelectorAll('.mode-btn')];
 
 // 2-tone heart palettes: stronger/saturated heart, softer pastel background.
 const themes = {
-  // Palette lấy cảm hứng từ gradient Stripe: màu tim đậm hơn rõ rệt,
-  // background dùng cùng họ màu nhưng được pha trắng để giữ cảm giác pastel.
   predawn: {
-    label: 'Pre-dawn',
-    rayA: [0.34, 0.22, 0.92], rayB: [0.82, 0.26, 0.82],
-    bgA: [0.86, 0.84, 0.97], bgB: [0.97, 0.84, 0.91], bgC: [0.84, 0.92, 0.98],
+    label: 'Pre-dawn', icon: 'orbit',
+    rayA: [0.07, 0.20, 1.00], rayB: [0.58, 0.18, 1.00],
+    bgA: [0.91, 0.88, 0.98], bgB: [0.84, 0.74, 0.98], bgC: [0.94, 0.90, 0.99],
   },
   sunrise: {
-    label: 'Sunrise',
-    rayA: [0.95, 0.27, 0.43], rayB: [1.00, 0.57, 0.22],
-    bgA: [0.97, 0.83, 0.86], bgB: [1.00, 0.87, 0.76], bgC: [0.84, 0.93, 0.98],
+    label: 'Sunrise', icon: 'sunrise',
+    rayA: [1.00, 0.28, 0.46], rayB: [1.00, 0.66, 0.30],
+    bgA: [0.98, 0.86, 0.93], bgB: [1.00, 0.77, 0.66], bgC: [0.88, 0.82, 1.00],
   },
   daytime: {
-    label: 'Daytime',
-    rayA: [0.24, 0.30, 0.94], rayB: [0.03, 0.69, 0.91],
-    bgA: [0.85, 0.84, 0.97], bgB: [0.97, 0.84, 0.90], bgC: [0.82, 0.93, 0.98],
+    label: 'Daytime', icon: 'sun',
+    rayA: [0.17, 0.36, 1.00], rayB: [0.03, 0.72, 0.96],
+    bgA: [0.87, 0.91, 1.00], bgB: [0.91, 0.83, 0.99], bgC: [0.78, 0.93, 1.00],
   },
   dusk: {
-    label: 'Dusk',
-    rayA: [0.49, 0.23, 0.91], rayB: [0.92, 0.26, 0.55],
-    bgA: [0.84, 0.82, 0.95], bgB: [0.96, 0.81, 0.89], bgC: [0.82, 0.89, 0.98],
+    label: 'Dusk', icon: 'dusk',
+    rayA: [0.36, 0.20, 1.00], rayB: [0.94, 0.25, 0.74],
+    bgA: [0.86, 0.80, 0.98], bgB: [0.97, 0.79, 0.91], bgC: [0.82, 0.87, 1.00],
   },
   sunset: {
-    label: 'Sunset',
-    rayA: [0.95, 0.23, 0.42], rayB: [1.00, 0.56, 0.20],
-    bgA: [0.97, 0.82, 0.84], bgB: [1.00, 0.87, 0.74], bgC: [0.82, 0.92, 0.98],
+    label: 'Sunset', icon: 'sunset',
+    rayA: [0.32, 0.16, 1.00], rayB: [1.00, 0.48, 0.39],
+    bgA: [0.88, 0.78, 0.99], bgB: [0.99, 0.70, 0.89], bgC: [1.00, 0.76, 0.65],
   },
   night: {
-    label: 'Night',
-    rayA: [0.08, 0.22, 0.72], rayB: [0.46, 0.30, 0.94],
-    bgA: [0.84, 0.86, 0.95], bgB: [0.92, 0.86, 0.93], bgC: [0.80, 0.90, 0.98],
+    label: 'Night', icon: 'moon',
+    rayA: [0.06, 0.14, 0.72], rayB: [0.48, 0.28, 1.00],
+    bgA: [0.79, 0.82, 0.95], bgB: [0.84, 0.78, 0.96], bgC: [0.70, 0.82, 0.99],
   },
 };
 
@@ -145,14 +143,15 @@ void main(){
 
   // Default auto motion: a soft continuous ripple. It is visible enough to read,
   // but fades out automatically while the user is actively interacting.
-  float rippleBoost=1.12;
-  float breath=1.0 + (sin(t*.22)*.0043 + sin(t*.105+1.1)*.0020) * u_idleMix;
-  float nx=sin(hp.y*.078+t*.19+a_phase*.075);
-  float ny=cos(hp.x*.074-t*.17+a_phase*.065);
-  vec2 flow=vec2(nx,ny)*(.022+a_depth*.010) * u_idleMix;
+  float rippleBoost=1.18;
+  float breath=1.0 + (sin(t*.28)*.0060 + sin(t*.115+1.1)*.0026) * u_idleMix;
+  float nx=sin(hp.y*.086+t*.27+a_phase*.082);
+  float ny=cos(hp.x*.078-t*.22+a_phase*.071);
+  float sway=sin(t*.34+a_phase*.19+a_depth*2.1);
+  vec2 flow=(vec2(nx,ny)*(.024+a_depth*.012) + vec2(sway*.010,sin(t*.25+a_phase*.13)*.006)) * u_idleMix;
   hp=hp*breath+flow;
 
-  vec2 drift=vec2(sin(t*.050)+.28*sin(t*.021+1.7),cos(t*.046+.5)+.24*sin(t*.019+2.2))*u_scale*.014;
+  vec2 drift=vec2(sin(t*.050)+.28*sin(t*.021+1.7),cos(t*.046+.5)+.24*sin(t*.019+2.2))*u_scale*.017;
   vec2 endp=u_center+hp*u_scale+drift*(.25+a_depth*.55);
   vec2 start=u_center+a_core*(1.+sin(t*.20+a_phase*.05)*.012)+drift*.035;
   float reveal=smoothstep(0.0,1.0,u_reveal);
@@ -206,13 +205,16 @@ void main(){
 
   // Tip flexibility + subtle auto-ripple make the default motion easier to notice.
   float tipFlex=a_s*a_s;
-  float micro=sin(t*.17+a_phase*.14+a_s*1.62)*(.12+.42*tipFlex);
-  float wave1 = sin(t*.92 - a_s*7.2 + a_phase*.46);
-  float wave2 = sin(t*.61 + a_s*4.6 + a_phase*.31);
-  float wave3 = sin(t*.37 + hp.x*.055 - hp.y*.035 + a_phase*.18);
-  float idleRipple = wave1*.56 + wave2*.29 + wave3*.15;
-  displacement += normal*micro*(.06+.14*a_depth) * (.22 + .78*u_idleMix) * rippleBoost * reveal;
-  displacement += normal*idleRipple*(.24 + 1.18*tipFlex) * (.16 + .18*a_depth) * u_idleMix * rippleBoost * reveal;
+  float micro=sin(t*.20+a_phase*.14+a_s*1.62)*(.13+.48*tipFlex);
+  float wave1 = sin(t*1.05 - a_s*8.5 + a_phase*.48);
+  float wave2 = sin(t*.70 + a_s*5.8 + a_phase*.33);
+  float wave3 = sin(t*.42 + hp.x*.060 - hp.y*.041 + a_phase*.20);
+  float wave4 = sin(t*.31 + a_depth*4.4 + a_s*2.2);
+  float idleRipple = wave1*.47 + wave2*.28 + wave3*.15 + wave4*.10;
+  float tipBloom=smoothstep(.42,1.0,a_s);
+  displacement += normal*micro*(.07+.16*a_depth) * (.20 + .80*u_idleMix) * rippleBoost * reveal;
+  displacement += normal*idleRipple*(.26 + 1.32*tipFlex) * (.17 + .20*a_depth) * u_idleMix * rippleBoost * reveal;
+  displacement += tangent*sin(t*.46+a_phase*.21)*(.10+.30*tipBloom)*u_idleMix*reveal;
 
   vec2 pos=basePos+displacement;
   vec2 clip=(pos/u_resolution)*2.-1.;
@@ -222,7 +224,8 @@ void main(){
   float twoTone=smoothstep(.16,.84,a_tint);
   vec3 col=mix(u_rayA,u_rayB,twoTone);
   float alpha=a_alpha*mix(.07,1.0,pow(a_s,.80))*smoothstep(.015,.56,reveal);
-  float shimmer=.992+.008*sin(t*.18+a_phase*.11);
+  float shimmer=.975+.025*sin(t*.62+a_phase*.17+a_s*3.1);
+  shimmer += .018*smoothstep(.78,1.0,a_s)*sin(t*1.35+a_phase*.31);
   v_color=vec4(col,alpha*shimmer);
 }`;
 const HEART_FS=`
@@ -399,7 +402,9 @@ function render(now){
 function selectTheme(name){
   if(!themes[name])return;activeTheme=name;app.dataset.theme=name;const t=themes[name];
   targetRayA=[...t.rayA];targetRayB=[...t.rayB];targetBgA=[...t.bgA];targetBgB=[...t.bgB];targetBgC=[...t.bgC];
-  themeLabel.textContent=t.label;buttons.forEach(b=>b.classList.toggle('active',b.dataset.theme===name));localStorage.setItem('heart-theme',name);closeMenu();
+  if(themeIcon) themeIcon.className=`theme-symbol icon-${t.icon}`;
+  themeToggle.setAttribute('aria-label',`Màu hiện tại: ${t.label}`);
+  buttons.forEach(b=>b.classList.toggle('active',b.dataset.theme===name));localStorage.setItem('heart-theme',name);closeMenu();
 }
 function openMenu(){modePanel.classList.remove('closed');themeToggle.setAttribute('aria-expanded','true');}
 function closeMenu(){modePanel.classList.add('closed');themeToggle.setAttribute('aria-expanded','false');}
@@ -441,7 +446,9 @@ if(saved&&themes[saved]){
   activeTheme=saved;app.dataset.theme=saved;const t=themes[saved];
   rayA=[...t.rayA];rayB=[...t.rayB];bgA=[...t.bgA];bgB=[...t.bgB];bgC=[...t.bgC];
   targetRayA=[...rayA];targetRayB=[...rayB];targetBgA=[...bgA];targetBgB=[...bgB];targetBgC=[...bgC];
-  themeLabel.textContent=t.label;buttons.forEach(b=>b.classList.toggle('active',b.dataset.theme===saved));
+  if(themeIcon) themeIcon.className=`theme-symbol icon-${t.icon}`;
+  themeToggle.setAttribute('aria-label',`Màu hiện tại: ${t.label}`);
+  buttons.forEach(b=>b.classList.toggle('active',b.dataset.theme===saved));
 }
 
 resize();requestAnimationFrame(render);
