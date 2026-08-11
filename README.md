@@ -17,6 +17,8 @@ Static HTML/CSS/JavaScript project. No backend required.
 - Centerline ray density is reduced for a softer heart core.
 - Magnetic pointer field makes the rays follow touch with smoother inertia.
 - Background colors are more saturated and react softly to pointer movement.
+- Heart palettes now use contrasting two-tone ray colors so the heart stands out from the background.
+- Added subtle layered depth, a soft inner glow, a heartbeat wave, edge sparkles, and slow color drift.
 
 ## Run
 Open `index.html`, or use VS Code Live Server.
@@ -28,4 +30,4 @@ Deploy the folder as a static site. No build command or environment variables ar
 - Heart rays are split into multiple GPU segments instead of one rigid line.
 - Pointer interaction detects where the cursor touches each ray and bends the downstream part, so the free tip moves more strongly like a shaken string.
 - Pointer velocity launches a damped travelling wave toward the tip.
-- Heart colors are darker/more saturated while backgrounds keep stronger pastel contrast.
+- Heart colors drift between two harmonious tones while backgrounds keep stronger pastel contrast.

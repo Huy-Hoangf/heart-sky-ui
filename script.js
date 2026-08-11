@@ -14,33 +14,33 @@ window.addEventListener('error', () => app?.classList.add('render-fallback'));
 const themes = {
   predawn: {
     label: 'Pre-dawn', icon: 'orbit',
-    rayA: [0.07, 0.20, 1.00], rayB: [0.58, 0.18, 1.00],
-    bgA: [0.82, 0.74, 0.98], bgB: [0.66, 0.54, 0.98], bgC: [0.86, 0.76, 1.00],
+    rayA: [0.06, 0.10, 0.98], rayB: [0.98, 0.16, 0.86],
+    bgA: [0.76, 0.66, 0.98], bgB: [0.58, 0.46, 0.98], bgC: [0.89, 0.72, 1.00],
   },
   sunrise: {
     label: 'Sunrise', icon: 'sunrise',
-    rayA: [1.00, 0.28, 0.46], rayB: [1.00, 0.66, 0.30],
-    bgA: [1.00, 0.72, 0.86], bgB: [1.00, 0.55, 0.40], bgC: [0.76, 0.64, 1.00],
+    rayA: [0.88, 0.08, 0.48], rayB: [1.00, 0.78, 0.18],
+    bgA: [1.00, 0.62, 0.82], bgB: [1.00, 0.44, 0.34], bgC: [0.70, 0.56, 1.00],
   },
   daytime: {
     label: 'Daytime', icon: 'sun',
-    rayA: [0.17, 0.36, 1.00], rayB: [0.03, 0.72, 0.96],
-    bgA: [0.66, 0.82, 1.00], bgB: [0.78, 0.62, 1.00], bgC: [0.48, 0.86, 1.00],
+    rayA: [0.06, 0.22, 1.00], rayB: [0.00, 0.95, 0.78],
+    bgA: [0.56, 0.76, 1.00], bgB: [0.68, 0.52, 1.00], bgC: [0.36, 0.80, 1.00],
   },
   dusk: {
     label: 'Dusk', icon: 'dusk',
-    rayA: [0.36, 0.20, 1.00], rayB: [0.94, 0.25, 0.74],
-    bgA: [0.68, 0.58, 0.98], bgB: [0.99, 0.58, 0.84], bgC: [0.62, 0.74, 1.00],
+    rayA: [0.24, 0.10, 1.00], rayB: [1.00, 0.18, 0.68],
+    bgA: [0.58, 0.48, 0.96], bgB: [0.96, 0.48, 0.78], bgC: [0.50, 0.66, 1.00],
   },
   sunset: {
     label: 'Sunset', icon: 'sunset',
-    rayA: [0.32, 0.16, 1.00], rayB: [1.00, 0.48, 0.39],
-    bgA: [0.70, 0.52, 0.99], bgB: [1.00, 0.48, 0.78], bgC: [1.00, 0.54, 0.34],
+    rayA: [0.42, 0.08, 1.00], rayB: [1.00, 0.68, 0.18],
+    bgA: [0.62, 0.42, 0.98], bgB: [1.00, 0.38, 0.72], bgC: [1.00, 0.48, 0.28],
   },
   night: {
     label: 'Night', icon: 'moon',
-    rayA: [0.06, 0.14, 0.72], rayB: [0.48, 0.28, 1.00],
-    bgA: [0.50, 0.58, 0.92], bgB: [0.58, 0.48, 0.95], bgC: [0.36, 0.60, 1.00],
+    rayA: [0.00, 0.92, 0.92], rayB: [1.00, 0.20, 0.86],
+    bgA: [0.38, 0.48, 0.88], bgB: [0.46, 0.36, 0.92], bgC: [0.24, 0.52, 0.96],
   },
 };
 
@@ -160,6 +160,8 @@ void main(){
   float beatA=exp(-pow((beatPhase-.10)/.052,2.0));
   float beatB=exp(-pow((beatPhase-.25)/.072,2.0));
   float heartbeat=(beatA*.038 + beatB*.024) * u_idleMix;
+  float beatEnergy=(beatA + beatB*.72) * u_idleMix;
+  float waveFront=fract(beatPhase/1.18);
   float rippleBoost=.58;
   float breath=1.0 + heartbeat + (sin(t*.18)*.0022 + sin(t*.075+1.1)*.0012) * u_idleMix;
   float nx=sin(hp.y*.070+t*.14+a_phase*.074);
@@ -169,7 +171,8 @@ void main(){
   hp=hp*breath+flow;
 
   vec2 drift=vec2(sin(t*.026)+.28*sin(t*.014+1.7),cos(t*.024+.5)+.24*sin(t*.012+2.2))*u_scale*.008;
-  vec2 endp=u_center+hp*u_scale+drift*(.25+a_depth*.55);
+  float layerScale=1.0 + (a_depth-.5)*.035*smoothstep(.20,1.0,a_s);
+  vec2 endp=u_center+hp*u_scale*layerScale+drift*(.25+a_depth*.55);
   vec2 start=u_center+a_core*(1.+sin(t*.20+a_phase*.05)*.012)+drift*.035;
   float reveal=smoothstep(0.0,1.0,u_reveal);
   float bloom=1.0-pow(1.0-reveal,2.4);
@@ -241,18 +244,32 @@ void main(){
   displacement += normal*micro*(.035+.08*a_depth) * (.25 + .75*u_idleMix) * rippleBoost * reveal;
   displacement += normal*idleRipple*(.15 + .72*tipFlex) * (.09 + .12*a_depth) * u_idleMix * rippleBoost * reveal;
   displacement += tangent*sin(t*.20+a_phase*.21)*(.035+.12*tipBloom)*u_idleMix*reveal;
+  float pulseWave=exp(-pow((a_s-waveFront)/.075,2.0))*beatEnergy*reveal;
+  displacement += normal*pulseWave*(.80+2.40*tipFlex);
 
   vec2 pos=basePos+displacement;
   vec2 clip=(pos/u_resolution)*2.-1.;
   gl_Position=vec4(clip*vec2(1.,-1.),0.,1.);
   gl_PointSize=a_size*u_dpr;
 
-  float twoTone=smoothstep(.16,.84,a_tint);
-  vec3 col=mix(u_rayA,u_rayB,twoTone);
-  float rootFade=smoothstep(.10,.38,a_s);
-  float alpha=a_alpha*mix(.012,.92,pow(a_s,.88))*mix(.20,1.0,rootFade)*smoothstep(.015,.56,reveal);
+  float organicTint=sat(a_tint + .12*sin(a_phase*.77+t*.055) + .08*sin(a_depth*5.2+t*.033));
+  float twoTone=smoothstep(.12,.88,organicTint);
+  vec3 driftA=mix(u_rayA,u_rayB,.18+.10*sin(t*.045+a_depth*2.6));
+  vec3 driftB=mix(u_rayB,u_rayA,.14+.08*sin(t*.038+a_phase*.19));
+  vec3 col=mix(driftA,driftB,twoTone);
+  float waveGlow=pulseWave*(.32+.42*smoothstep(.35,1.0,a_s));
+  float innerHalo=exp(-pow((a_s-.26)/.15,2.0))*smoothstep(.18,1.0,reveal);
+  col=mix(col,vec3(1.0,.94,.98),waveGlow);
+  col=mix(col,vec3(1.0,.88,.98),innerHalo*.10);
+  float rootFade=smoothstep(.18,.50,a_s);
+  float layerAlpha=mix(.68,1.18,a_depth);
+  float edge=smoothstep(.76,1.0,a_s);
+  float sparkleSeed=sin(a_phase*37.13 + floor(t*2.0)*1.73);
+  float sparkle=edge*step(.92,sparkleSeed)*(.18+.50*beatEnergy);
+  float alpha=a_alpha*layerAlpha*mix(.008,.88,pow(a_s,.90))*mix(.10,1.0,rootFade)*smoothstep(.015,.56,reveal);
+  alpha += innerHalo*.010*a_alpha*reveal + sparkle*.07*reveal;
   float shimmer=.992+.008*sin(t*.28+a_phase*.17+a_s*2.4);
-  shimmer += .006*smoothstep(.84,1.0,a_s)*sin(t*.58+a_phase*.31);
+  shimmer += .004*smoothstep(.84,1.0,a_s)*sin(t*.58+a_phase*.31) + sparkle*.10;
   v_color=vec4(col,alpha*shimmer);
 }`;
 const HEART_FS=`
