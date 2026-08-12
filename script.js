@@ -197,7 +197,8 @@ void main(){
   vec2 basePos=mix(start,endp,a_s);
   vec2 displacement=vec2(0.0);
   float tipFlex=a_s*a_s;
-  float interactScale=mix(.26,1.0,1.0-smallHeart);
+  float interactScale=mix(2.65,1.0,1.0-smallHeart);
+  float smallBrushRadius=max(18.0,u_scale*heartScale*7.2);
 
   // Multiple decaying brush samples create a soft temporal trail rather than a sharp kink.
   for(int i=0;i<9;i++){
@@ -209,7 +210,7 @@ void main(){
     float hitS=sat(dot(ip-start,ray)/len2);
     vec2 hitPoint=start+ray*hitS;
     float d=length(ip-hitPoint);
-    float radius=min(u_resolution.x,u_resolution.y)*.182*mix(.30,1.0,1.0-smallHeart);
+    float radius=mix(min(u_resolution.x,u_resolution.y)*.182,smallBrushRadius,smallHeart);
     float nearRay=1.0-smoothstep(radius*.10,radius,d);
 
     // Fiber response: close fibers bend most; neighboring fibers bend less.
@@ -247,7 +248,7 @@ void main(){
 
   vec2 pointerVector=u_pointer-basePos;
   float pointerDistance=length(pointerVector);
-  float fieldRadius=min(u_resolution.x,u_resolution.y)*.255*mix(.34,1.0,1.0-smallHeart);
+  float fieldRadius=mix(min(u_resolution.x,u_resolution.y)*.255,smallBrushRadius*1.15,smallHeart);
   float field=1.0-smoothstep(fieldRadius*.06,fieldRadius,pointerDistance);
   vec2 pointerDir=pointerDistance>1.0 ? pointerVector/pointerDistance : normal;
   float liveFiber=smoothstep(.14,1.0,a_s);
@@ -365,16 +366,16 @@ function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)re
 function segmentsPerRay(){return W<=760?10:12;}
 const HEART_INSTANCES=[
   {x:0,y:0,scale:1,beat:0,count:1},
-  {x:14.8,y:-9.6,scale:.30,beat:.1,count:.14},
-  {x:10.4,y:-17.0,scale:.20,beat:.2,count:.10},
-  {x:-14.8,y:-9.0,scale:.24,beat:.3,count:.11},
-  {x:-11.6,y:-15.8,scale:.18,beat:.4,count:.09},
-  {x:8.4,y:10.5,scale:.18,beat:.5,count:.09},
+  {x:14.8,y:-9.6,scale:.30,beat:.1,count:.16},
+  {x:10.4,y:-17.0,scale:.20,beat:.2,count:.12},
+  {x:-14.8,y:-9.0,scale:.24,beat:.3,count:.13},
+  {x:-11.6,y:-15.8,scale:.18,beat:.4,count:.11},
+  {x:8.4,y:10.5,scale:.18,beat:.5,count:.11},
 ];
 
 function buildGeometry(){
   const baseN=particleCount(), segs=segmentsPerRay();
-  const counts=HEART_INSTANCES.map((inst,index)=>Math.max(index===0?24:42,Math.round(baseN*inst.count)));
+  const counts=HEART_INSTANCES.map((inst,index)=>Math.max(index===0?24:56,Math.round(baseN*inst.count)));
   const totalPoints=counts.reduce((sum,count)=>sum+count,0);
   const rayVerts=totalPoints*segs*2;
   const rays=new Float32Array(rayVerts*14), points=new Float32Array(totalPoints*14);
@@ -388,13 +389,13 @@ function buildGeometry(){
     const jitter=smallInst ? (.10 + (instIndex%4)*.035) : .35;
     const tt=(((i+jitter*Math.random())/n)+seed)*Math.PI*2;
     const edge=heartPoint(tt), layerRoll=Math.random();
-    const outerLayer=smallInst ? layerRoll>.50 : layerRoll>.66;
-    const middleLayer=smallInst ? layerRoll>.20 && layerRoll<=.50 : layerRoll>.26 && layerRoll<=.66;
+    const outerLayer=smallInst ? layerRoll>.42 : layerRoll>.66;
+    const middleLayer=smallInst ? layerRoll>.16 && layerRoll<=.42 : layerRoll>.26 && layerRoll<=.66;
     const r=outerLayer
-      ? (smallInst ? .80+Math.pow(Math.random(),.82)*.135 : .78+Math.pow(Math.random(),.72)*.125)
+      ? (smallInst ? .83+Math.pow(Math.random(),.78)*.125 : .78+Math.pow(Math.random(),.72)*.125)
       : middleLayer
-        ? (smallInst ? .54+Math.pow(Math.random(),.84)*.24 : .52+Math.pow(Math.random(),.78)*.25)
-        : (smallInst ? .30+Math.pow(Math.random(),.92)*.24 : .28+Math.pow(Math.random(),.88)*.28);
+        ? (smallInst ? .54+Math.pow(Math.random(),.84)*.245 : .52+Math.pow(Math.random(),.78)*.25)
+        : (smallInst ? .28+Math.pow(Math.random(),.94)*.26 : .28+Math.pow(Math.random(),.88)*.28);
     let hx=edge.x*r, hy=edge.y*r;
     const bottomRound=Math.max(0,Math.min(1,(hy-1.85)/5.25));
     const bottomX=Math.min(1,Math.abs(hx)/6.4);
@@ -408,7 +409,7 @@ function buildGeometry(){
     if(!smallInst && centralColumn>.68 && Math.random()<(.38 + bottomRound*.22)) hx += (Math.random()<.5?-1:1) * (.38 + Math.random()*(.62 + bottomRound*.34));
     const phase=Math.random()*Math.PI*2;
     const depth=smallInst
-      ? outerLayer ? .72+Math.random()*.28 : middleLayer ? .38+Math.random()*.26 : .12+Math.random()*.22
+      ? outerLayer ? .74+Math.random()*.26 : middleLayer ? .38+Math.random()*.28 : .10+Math.random()*.24
       : outerLayer ? .66+Math.random()*.34 : middleLayer ? .32+Math.random()*.34 : .06+Math.random()*.24;
     const rootS=smallInst ? .006+Math.random()*.014 : .018+Math.random()*.055;
     const rootBase=outerLayer ? .10 : middleLayer ? .08 : .055;
@@ -422,10 +423,10 @@ function buildGeometry(){
     const tintBase=Math.max(0,Math.min(1,rawTint));
     const tint=0.5 + (tintBase-0.5)*(1-0.15*trunkSoft);
     const alphaBase=smallInst
-      ? outerLayer ? .40+Math.random()*.14 : middleLayer ? .34+Math.random()*.13 : .22+Math.random()*.10
+      ? outerLayer ? .46+Math.random()*.14 : middleLayer ? .34+Math.random()*.13 : .18+Math.random()*.09
       : outerLayer ? .24+Math.random()*.12 : middleLayer ? .34+Math.random()*.16 : .20+Math.random()*.12;
     const sizeBase=smallInst
-      ? outerLayer ? .76+Math.random()*.20 : middleLayer ? .70+Math.random()*.16 : .60+Math.random()*.14
+      ? outerLayer ? .80+Math.random()*.20 : middleLayer ? .70+Math.random()*.16 : .56+Math.random()*.13
       : outerLayer ? .76+Math.random()*.34 : middleLayer ? .84+Math.random()*.34 : .64+Math.random()*.22;
     const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn)*(1-.28*bottomRound*centerline)*(1-.18*roundedTip);
     const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn)*(1-.18*bottomRound*centerline)*(1-.12*roundedTip);
