@@ -366,16 +366,16 @@ function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)re
 function segmentsPerRay(){return W<=760?10:12;}
 const HEART_INSTANCES=[
   {x:0,y:0,scale:1,beat:0,count:1},
-  {x:14.8,y:-9.6,scale:.30,beat:.1,count:.16},
-  {x:10.4,y:-17.0,scale:.20,beat:.2,count:.12},
-  {x:-14.8,y:-9.0,scale:.24,beat:.3,count:.13},
-  {x:-11.6,y:-15.8,scale:.18,beat:.4,count:.11},
-  {x:8.4,y:10.5,scale:.18,beat:.5,count:.11},
+  {x:14.8,y:-9.6,scale:.30,beat:.1,count:.18},
+  {x:10.4,y:-17.0,scale:.20,beat:.2,count:.13},
+  {x:-14.8,y:-9.0,scale:.24,beat:.3,count:.15},
+  {x:-11.6,y:-15.8,scale:.18,beat:.4,count:.12},
+  {x:8.4,y:10.5,scale:.18,beat:.5,count:.12},
 ];
 
 function buildGeometry(){
   const baseN=particleCount(), segs=segmentsPerRay();
-  const counts=HEART_INSTANCES.map((inst,index)=>Math.max(index===0?24:56,Math.round(baseN*inst.count)));
+  const counts=HEART_INSTANCES.map((inst,index)=>Math.max(index===0?24:64,Math.round(baseN*inst.count)));
   const totalPoints=counts.reduce((sum,count)=>sum+count,0);
   const rayVerts=totalPoints*segs*2;
   const rays=new Float32Array(rayVerts*14), points=new Float32Array(totalPoints*14);
@@ -386,16 +386,16 @@ function buildGeometry(){
     // More even angular distribution = smoother carpet-like local response.
     const smallInst=inst.scale<.5;
     const seed=(instIndex*.137 + inst.scale*.19) % 1;
-    const jitter=smallInst ? (.10 + (instIndex%4)*.035) : .35;
+    const jitter=smallInst ? (.28 + (instIndex%4)*.055) : .35;
     const tt=(((i+jitter*Math.random())/n)+seed)*Math.PI*2;
     const edge=heartPoint(tt), layerRoll=Math.random();
-    const outerLayer=smallInst ? layerRoll>.42 : layerRoll>.66;
-    const middleLayer=smallInst ? layerRoll>.16 && layerRoll<=.42 : layerRoll>.26 && layerRoll<=.66;
+    const outerLayer=smallInst ? layerRoll>.48 : layerRoll>.66;
+    const middleLayer=smallInst ? layerRoll>.18 && layerRoll<=.48 : layerRoll>.26 && layerRoll<=.66;
     const r=outerLayer
-      ? (smallInst ? .83+Math.pow(Math.random(),.78)*.125 : .78+Math.pow(Math.random(),.72)*.125)
+      ? (smallInst ? .80+Math.pow(Math.random(),.74)*.145 : .78+Math.pow(Math.random(),.72)*.125)
       : middleLayer
-        ? (smallInst ? .54+Math.pow(Math.random(),.84)*.245 : .52+Math.pow(Math.random(),.78)*.25)
-        : (smallInst ? .28+Math.pow(Math.random(),.94)*.26 : .28+Math.pow(Math.random(),.88)*.28);
+        ? (smallInst ? .50+Math.pow(Math.random(),.78)*.275 : .52+Math.pow(Math.random(),.78)*.25)
+        : (smallInst ? .24+Math.pow(Math.random(),.90)*.30 : .28+Math.pow(Math.random(),.88)*.28);
     let hx=edge.x*r, hy=edge.y*r;
     const bottomRound=Math.max(0,Math.min(1,(hy-1.85)/5.25));
     const bottomX=Math.min(1,Math.abs(hx)/6.4);
@@ -411,11 +411,11 @@ function buildGeometry(){
     const depth=smallInst
       ? outerLayer ? .74+Math.random()*.26 : middleLayer ? .38+Math.random()*.28 : .10+Math.random()*.24
       : outerLayer ? .66+Math.random()*.34 : middleLayer ? .32+Math.random()*.34 : .06+Math.random()*.24;
-    const rootS=smallInst ? .006+Math.random()*.014 : .018+Math.random()*.055;
+    const rootS=smallInst ? .010+Math.random()*.026 : .018+Math.random()*.055;
     const rootBase=outerLayer ? .10 : middleLayer ? .08 : .055;
-    const rootJitter=rootBase*(smallInst ? .08 : 1.0)*(1-centralColumn*.55);
+    const rootJitter=rootBase*(smallInst ? .22 : 1.0)*(1-centralColumn*.55);
     const ca=Math.random()*Math.PI*2, cr=Math.random()*rootJitter;
-    const cx=hx*rootS+Math.cos(ca)*cr, cy=hy*rootS+Math.sin(ca)*cr;
+    const cx=hx*rootS+Math.cos(ca)*cr*(smallInst ? 1.25 : 1.0), cy=hy*rootS+Math.sin(ca)*cr*(smallInst ? .70 : 1.0);
     const rawTint=Math.random()*0.92 + 0.04 + (Math.random()-0.5)*0.10;
     const bottomness=Math.max(0,Math.min(1,(hy-1.5)/12.0));
     const centerline=Math.max(0,1-Math.min(1,Math.abs(hx)/4.8));
@@ -423,10 +423,10 @@ function buildGeometry(){
     const tintBase=Math.max(0,Math.min(1,rawTint));
     const tint=0.5 + (tintBase-0.5)*(1-0.15*trunkSoft);
     const alphaBase=smallInst
-      ? outerLayer ? .46+Math.random()*.14 : middleLayer ? .34+Math.random()*.13 : .18+Math.random()*.09
+      ? outerLayer ? .36+Math.random()*.13 : middleLayer ? .30+Math.random()*.12 : .15+Math.random()*.08
       : outerLayer ? .24+Math.random()*.12 : middleLayer ? .34+Math.random()*.16 : .20+Math.random()*.12;
     const sizeBase=smallInst
-      ? outerLayer ? .80+Math.random()*.20 : middleLayer ? .70+Math.random()*.16 : .56+Math.random()*.13
+      ? outerLayer ? .68+Math.random()*.20 : middleLayer ? .64+Math.random()*.15 : .50+Math.random()*.12
       : outerLayer ? .76+Math.random()*.34 : middleLayer ? .84+Math.random()*.34 : .64+Math.random()*.22;
     const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn)*(1-.28*bottomRound*centerline)*(1-.18*roundedTip);
     const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn)*(1-.18*bottomRound*centerline)*(1-.12*roundedTip);
