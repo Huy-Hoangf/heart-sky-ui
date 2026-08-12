@@ -29,6 +29,7 @@ Static HTML/CSS/JavaScript project. No backend required.
 - The lower tip uses a rounded pointed V so the center stays lowest while the point is softened.
 - Heart rendering now uses a puffy silhouette mask so stray rays are clipped inside the intended heart shape.
 - The scene now renders one large heart plus five smaller matching hearts, each using the same motion and palette with 0.1s staggered heartbeat offsets.
+- Fiber density and edge motion are reduced so the main heart shape remains readable.
 
 ## Run
 Open `index.html`, or use VS Code Live Server.

@@ -248,8 +248,8 @@ void main(){
   vec2 pointerDir=pointerDistance>1.0 ? pointerVector/pointerDistance : normal;
   float liveFiber=smoothstep(.14,1.0,a_s);
   float magnetic=field*u_pointerStrength*liveFiber*reveal;
-  displacement += pointerDir*magnetic*(.90+1.10*tipFlex);
-  displacement += normal*sin(pointerDistance*.014-t*2.2+a_phase*.23)*field*field*u_pointerStrength*(1.2+2.1*tipFlex)*reveal;
+  displacement += pointerDir*magnetic*(.70+.82*tipFlex);
+  displacement += normal*sin(pointerDistance*.014-t*2.2+a_phase*.23)*field*field*u_pointerStrength*(.86+1.45*tipFlex)*reveal;
 
   // Tip flexibility + subtle auto-ripple make the default motion easier to notice.
   float micro=sin(t*.13+a_phase*.14+a_s*1.62)*(.07+.24*tipFlex);
@@ -259,11 +259,11 @@ void main(){
   float idleRipple = wave1*.54 + wave2*.32 + wave3*.14;
   float tipBloom=smoothstep(.42,1.0,a_s);
   float edgeContain=1.0-.70*smoothstep(.84,1.0,a_s);
-  displacement += normal*micro*(.030+.060*a_depth) * (.25 + .75*u_idleMix) * rippleBoost * reveal * edgeContain;
-  displacement += normal*idleRipple*(.11 + .46*tipFlex) * (.075 + .095*a_depth) * u_idleMix * rippleBoost * reveal * edgeContain;
-  displacement += tangent*sin(t*.20+a_phase*.21)*(.030+.080*tipBloom)*u_idleMix*reveal * edgeContain;
+  displacement += normal*micro*(.022+.044*a_depth) * (.25 + .75*u_idleMix) * rippleBoost * reveal * edgeContain;
+  displacement += normal*idleRipple*(.075 + .28*tipFlex) * (.055 + .070*a_depth) * u_idleMix * rippleBoost * reveal * edgeContain;
+  displacement += tangent*sin(t*.20+a_phase*.21)*(.020+.050*tipBloom)*u_idleMix*reveal * edgeContain;
   float pulseWave=exp(-pow((a_s-waveFront)/.062,2.0))*beatEnergy*reveal;
-  displacement += normal*pulseWave*(.58+1.35*tipFlex)*edgeContain;
+  displacement += normal*pulseWave*(.42+.92*tipFlex)*edgeContain;
 
   displacement *= .42+.58*heartScale;
   vec2 pos=basePos+displacement;
@@ -283,7 +283,7 @@ void main(){
   col=mix(col,vec3(1.0,.95,.92),waveGlow*.74);
   col=mix(col,vec3(1.0,.88,.84),innerHalo*.10);
   float rootFade=smoothstep(.18,.50,a_s);
-  float layerAlpha=mix(.54,1.28,a_depth) + innerLayer*.22;
+  float layerAlpha=mix(.42,1.02,a_depth) + innerLayer*.28;
   float edge=smoothstep(.76,1.0,a_s);
   float sparkleSeed=sin(a_phase*37.13 + floor(t*2.0)*1.73);
   float sparkle=edge*step(.965,sparkleSeed)*(.12+.62*beatEnergy);
@@ -357,19 +357,19 @@ function heartPoint(t){
   return {x, y};
 }
 function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)return 920;return 1120;}
-function segmentsPerRay(){return W<=760?14:18;}
+function segmentsPerRay(){return W<=760?10:12;}
 const HEART_INSTANCES=[
   {x:0,y:0,scale:1,beat:0,count:1},
-  {x:12.2,y:-5.5,scale:.43,beat:.1,count:.34},
-  {x:10.8,y:-14.0,scale:.22,beat:.2,count:.18},
-  {x:-12.6,y:-6.8,scale:.27,beat:.3,count:.22},
-  {x:-13.8,y:-12.3,scale:.15,beat:.4,count:.14},
-  {x:7.8,y:8.5,scale:.17,beat:.5,count:.15},
+  {x:12.0,y:-6.0,scale:.36,beat:.1,count:.18},
+  {x:10.8,y:-14.2,scale:.18,beat:.2,count:.08},
+  {x:-12.4,y:-7.0,scale:.22,beat:.3,count:.10},
+  {x:-13.7,y:-12.6,scale:.13,beat:.4,count:.06},
+  {x:7.8,y:8.7,scale:.14,beat:.5,count:.06},
 ];
 
 function buildGeometry(){
   const baseN=particleCount(), segs=segmentsPerRay();
-  const counts=HEART_INSTANCES.map(inst=>Math.max(48,Math.round(baseN*inst.count)));
+  const counts=HEART_INSTANCES.map(inst=>Math.max(24,Math.round(baseN*inst.count)));
   const totalPoints=counts.reduce((sum,count)=>sum+count,0);
   const rayVerts=totalPoints*segs*2;
   const rays=new Float32Array(rayVerts*14), points=new Float32Array(totalPoints*14);
@@ -380,7 +380,7 @@ function buildGeometry(){
     // More even angular distribution = smoother carpet-like local response.
     const tt=((i+.35*Math.random())/n)*Math.PI*2;
     const edge=heartPoint(tt), layerRoll=Math.random();
-    const outerLayer=layerRoll>.36, middleLayer=layerRoll>.15 && layerRoll<=.36;
+    const outerLayer=layerRoll>.66, middleLayer=layerRoll>.26 && layerRoll<=.66;
     const r=outerLayer
       ? .82+Math.pow(Math.random(),.62)*.155
       : middleLayer
@@ -408,8 +408,8 @@ function buildGeometry(){
     const trunkSoft=bottomness*centerline;
     const tintBase=Math.max(0,Math.min(1,rawTint));
     const tint=0.5 + (tintBase-0.5)*(1-0.15*trunkSoft);
-    const alphaBase=outerLayer ? .48+Math.random()*.28 : middleLayer ? .24+Math.random()*.20 : .12+Math.random()*.13;
-    const sizeBase=outerLayer ? 1.04+Math.random()*.74 : middleLayer ? .78+Math.random()*.46 : .58+Math.random()*.26;
+    const alphaBase=outerLayer ? .30+Math.random()*.16 : middleLayer ? .30+Math.random()*.16 : .18+Math.random()*.14;
+    const sizeBase=outerLayer ? .92+Math.random()*.48 : middleLayer ? .82+Math.random()*.38 : .68+Math.random()*.24;
     const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn)*(1-.28*bottomRound*centerline)*(1-.18*roundedTip);
     const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn)*(1-.18*bottomRound*centerline)*(1-.12*roundedTip);
     const write=(arr,base,s)=>{arr[base]=hx;arr[base+1]=hy;arr[base+2]=cx;arr[base+3]=cy;arr[base+4]=tint;arr[base+5]=alpha;arr[base+6]=size;arr[base+7]=phase;arr[base+8]=depth;arr[base+9]=s;arr[base+10]=inst.x;arr[base+11]=inst.y;arr[base+12]=inst.scale;arr[base+13]=inst.beat;};
