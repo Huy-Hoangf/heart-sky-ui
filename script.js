@@ -5,7 +5,6 @@ const themeToggle = document.getElementById('themeToggle');
 const themeIcon = document.getElementById('themeIcon');
 const launchWrap = document.getElementById('launchWrap');
 const launchButton = document.getElementById('launchButton');
-const miniHearts = document.getElementById('miniHearts');
 const buttons = [...document.querySelectorAll('.mode-btn')];
 const HOLD_DURATION = 200;
 
@@ -303,7 +302,7 @@ void main(){
     return;
   }
   v_color=vec4(col,alpha*shimmer);
-  v_sparkle=sparkle;
+  v_sparkle=sparkle*(1.0-smallHeart);
 }`;
 const HEART_FS=`
 precision mediump float; varying vec4 v_color; varying float v_sparkle; varying vec2 v_local; uniform float u_pointPass;
@@ -365,22 +364,12 @@ function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)re
 function segmentsPerRay(){return W<=760?10:12;}
 const HEART_INSTANCES=[
   {x:0,y:0,scale:1,beat:0,count:1},
-];
-const COMPANION_HEARTS=[
   {x:14.8,y:-9.6,scale:.30,beat:.1,count:.28},
   {x:10.4,y:-17.0,scale:.20,beat:.2,count:.20},
   {x:-14.8,y:-9.0,scale:.24,beat:.3,count:.22},
   {x:-11.6,y:-15.8,scale:.18,beat:.4,count:.18},
   {x:8.4,y:10.5,scale:.18,beat:.5,count:.18},
 ];
-
-const miniHeartEls = COMPANION_HEARTS.map((heart,index)=>{
-  const el=document.createElement('i');
-  el.className='mini-heart';
-  el.style.setProperty('--tilt',`${[-7,6,-5,8,4][index]}deg`);
-  miniHearts?.appendChild(el);
-  return el;
-});
 
 function buildGeometry(){
   const baseN=particleCount(), segs=segmentsPerRay();
@@ -396,13 +385,13 @@ function buildGeometry(){
     const tt=((i+.35*Math.random())/n)*Math.PI*2;
     const smallInst=inst.scale<.5;
     const edge=heartPoint(tt), layerRoll=Math.random();
-    const outerLayer=smallInst ? layerRoll>.76 : layerRoll>.66;
-    const middleLayer=smallInst ? layerRoll>.30 && layerRoll<=.76 : layerRoll>.26 && layerRoll<=.66;
+    const outerLayer=smallInst ? true : layerRoll>.66;
+    const middleLayer=smallInst ? false : layerRoll>.26 && layerRoll<=.66;
     const r=outerLayer
-      ? (smallInst ? .70+Math.pow(Math.random(),.82)*.100 : .78+Math.pow(Math.random(),.72)*.125)
+      ? (smallInst ? .865+Math.pow(Math.random(),1.15)*.075 : .78+Math.pow(Math.random(),.72)*.125)
       : middleLayer
-        ? (smallInst ? .48+Math.pow(Math.random(),.86)*.22 : .52+Math.pow(Math.random(),.78)*.25)
-        : (smallInst ? .26+Math.pow(Math.random(),.92)*.24 : .28+Math.pow(Math.random(),.88)*.28);
+        ? .52+Math.pow(Math.random(),.78)*.25
+        : .28+Math.pow(Math.random(),.88)*.28;
     let hx=edge.x*r, hy=edge.y*r;
     const bottomRound=Math.max(0,Math.min(1,(hy-1.85)/5.25));
     const bottomX=Math.min(1,Math.abs(hx)/6.4);
@@ -413,12 +402,12 @@ function buildGeometry(){
     hx *= 1.0 + bottomRound*.10 + bottomCenter*bottomRound*.08;
     hy -= roundedTip*.10;
     const centralColumn=Math.max(0,1-Math.min(1,Math.abs(hx)/2.35))*Math.max(0,Math.min(1,(hy+10.5)/15.5));
-    if(centralColumn>.68 && Math.random()<(.38 + bottomRound*.22)) hx += (Math.random()<.5?-1:1) * (.38 + Math.random()*(.62 + bottomRound*.34));
+    if(!smallInst && centralColumn>.68 && Math.random()<(.38 + bottomRound*.22)) hx += (Math.random()<.5?-1:1) * (.38 + Math.random()*(.62 + bottomRound*.34));
     const phase=Math.random()*Math.PI*2;
-    const depth=outerLayer ? .66+Math.random()*.34 : middleLayer ? .32+Math.random()*.34 : .06+Math.random()*.24;
-    const rootS=.018+Math.random()*.055;
+    const depth=smallInst ? .88+Math.random()*.12 : outerLayer ? .66+Math.random()*.34 : middleLayer ? .32+Math.random()*.34 : .06+Math.random()*.24;
+    const rootS=smallInst ? .006+Math.random()*.014 : .018+Math.random()*.055;
     const rootBase=outerLayer ? .10 : middleLayer ? .08 : .055;
-    const rootJitter=rootBase*(smallInst ? .42 : 1.0)*(1-centralColumn*.55);
+    const rootJitter=rootBase*(smallInst ? .08 : 1.0)*(1-centralColumn*.55);
     const ca=Math.random()*Math.PI*2, cr=Math.random()*rootJitter;
     const cx=hx*rootS+Math.cos(ca)*cr, cy=hy*rootS+Math.sin(ca)*cr;
     const rawTint=Math.random()*0.92 + 0.04 + (Math.random()-0.5)*0.10;
@@ -427,8 +416,8 @@ function buildGeometry(){
     const trunkSoft=bottomness*centerline;
     const tintBase=Math.max(0,Math.min(1,rawTint));
     const tint=0.5 + (tintBase-0.5)*(1-0.15*trunkSoft);
-    const alphaBase=outerLayer ? .24+Math.random()*.12 : middleLayer ? .34+Math.random()*.16 : .20+Math.random()*.12;
-    const sizeBase=outerLayer ? .76+Math.random()*.34 : middleLayer ? .84+Math.random()*.34 : .64+Math.random()*.22;
+    const alphaBase=smallInst ? .54+Math.random()*.16 : outerLayer ? .24+Math.random()*.12 : middleLayer ? .34+Math.random()*.16 : .20+Math.random()*.12;
+    const sizeBase=smallInst ? .82+Math.random()*.18 : outerLayer ? .76+Math.random()*.34 : middleLayer ? .84+Math.random()*.34 : .64+Math.random()*.22;
     const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn)*(1-.28*bottomRound*centerline)*(1-.18*roundedTip);
     const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn)*(1-.18*bottomRound*centerline)*(1-.12*roundedTip);
     const write=(arr,base,s)=>{arr[base]=hx;arr[base+1]=hy;arr[base+2]=cx;arr[base+3]=cy;arr[base+4]=tint;arr[base+5]=alpha;arr[base+6]=size;arr[base+7]=phase;arr[base+8]=depth;arr[base+9]=s;arr[base+10]=inst.x;arr[base+11]=inst.y;arr[base+12]=inst.scale;arr[base+13]=inst.beat;};
@@ -537,42 +526,13 @@ function drawHeart(){
   bindHeartAttributes(pointBuffer);gl.uniform1f(heartLoc.pointPass,1);gl.drawArrays(gl.POINTS,0,pointBuffer.count);
 }
 
-function cssRgb(color){
-  return `rgb(${color.map(v=>Math.round(Math.max(0,Math.min(1,v))*255)).join(',')})`;
-}
-
-function updateMiniHearts(){
-  if(!miniHearts) return;
-  const {cx,cy,scale}=layout();
-  miniHearts.style.setProperty('--mini-reveal',String(reveal));
-  const colorA=cssRgb(rayA), colorB=cssRgb(rayB);
-  miniHeartEls.forEach((el,index)=>{
-    const heart=COMPANION_HEARTS[index];
-    const t=elapsed-heart.beat;
-    const phase=((t%1.18)+1.18)%1.18;
-    const beatA=Math.exp(-Math.pow((phase-.10)/.052,2));
-    const beatB=Math.exp(-Math.pow((phase-.25)/.072,2));
-    const driftX=Math.sin(t*.18+index*.7)*scale*.10;
-    const driftY=Math.cos(t*.16+index*.5)*scale*.08;
-    const beat=1+(beatA*.115+beatB*.065)*idleMix;
-    const size=Math.max(22,scale*19.5*heart.scale);
-    el.style.setProperty('--x',`${cx+heart.x*scale+driftX}px`);
-    el.style.setProperty('--y',`${cy+heart.y*scale+driftY}px`);
-    el.style.setProperty('--size',`${size}px`);
-    el.style.setProperty('--beat',String(beat));
-    el.style.setProperty('--heart-a',colorA);
-    el.style.setProperty('--heart-b',colorB);
-    el.style.opacity=String(.90*reveal);
-  });
-}
-
 function render(now){
   let dt=(now-lastTime)/1000;lastTime=now;dt=Math.min(Math.max(dt,1/240),1/30);elapsed+=dt;
   [reveal,revealV]=spring(reveal,revealV,revealTarget,dt,1.08,.90);
   updatePointer(dt);
   smoothColor(rayA,targetRayA,dt,1.75);smoothColor(rayB,targetRayB,dt,1.75);
   smoothColor(bgA,targetBgA,dt,.72);smoothColor(bgB,targetBgB,dt,.72);smoothColor(bgC,targetBgC,dt,.72);
-  updateMiniHearts();drawBackground();drawHeart();requestAnimationFrame(render);
+  drawBackground();drawHeart();requestAnimationFrame(render);
 }
 
 function selectTheme(name){

@@ -37,68 +37,6 @@ button { font: inherit; -webkit-tap-highlight-color: transparent; }
   touch-action: none;
 }
 
-.mini-hearts {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  opacity: var(--mini-reveal, 0);
-  transition: opacity .42s cubic-bezier(.16,1,.3,1);
-}
-
-.mini-heart {
-  --x: 50vw;
-  --y: 50vh;
-  --size: 72px;
-  --beat: 1;
-  --tilt: 0deg;
-  --heart-a: #ff6f9d;
-  --heart-b: #ffd166;
-  position: absolute;
-  left: var(--x);
-  top: var(--y);
-  width: var(--size);
-  height: var(--size);
-  transform:
-    translate(-50%, -50%)
-    rotate(calc(-45deg + var(--tilt)))
-    scale(var(--beat));
-  transform-origin: 50% 58%;
-  border-radius: 10% 9% 12% 10%;
-  background:
-    radial-gradient(circle at 30% 26%, rgba(255,255,255,.78) 0 8%, rgba(255,255,255,.22) 9% 18%, transparent 31%),
-    linear-gradient(135deg, var(--heart-a), var(--heart-b));
-  box-shadow:
-    0 9px 20px rgba(15, 23, 42, .14),
-    0 0 20px color-mix(in srgb, var(--heart-a) 42%, transparent);
-  filter: saturate(1.06) contrast(1.04);
-}
-
-.mini-heart::before,
-.mini-heart::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: inherit;
-  box-shadow: inherit;
-}
-
-.mini-heart::before {
-  left: 0;
-  top: -50%;
-}
-
-.mini-heart::after {
-  left: 50%;
-  top: 0;
-}
-
-.app.awaiting-launch .mini-hearts {
-  opacity: 0;
-}
-
 /* Một lớp trắng rất nhẹ giúp shader có cảm giác "milky" giống hero Stripe. */
 .app::after {
   content: "";
