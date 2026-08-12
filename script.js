@@ -271,7 +271,7 @@ void main(){
   v_local=(pos-instCenter)/(u_scale*heartScale);
   vec2 clip=(pos/u_resolution)*2.-1.;
   gl_Position=vec4(clip*vec2(1.,-1.),0.,1.);
-  gl_PointSize=a_size*u_dpr*(.55+.45*sqrt(heartScale));
+  gl_PointSize=a_size*u_dpr*(.55+.45*sqrt(heartScale))*(u_pointPass>.5 ? 4.4 : 1.0);
 
   float organicTint=sat(a_tint + .07*sin(a_phase*.77+globalT*.032) + .05*sin(a_depth*5.2+globalT*.024));
   float twoTone=smoothstep(.10,.90,organicTint);
@@ -312,7 +312,10 @@ void main(){
   if(insideHeart(v_local)<.5) discard;
   if(u_pointPass>.5){
     vec2 q=gl_PointCoord-.5;float d=length(q);
-    float a=smoothstep(.42,.05,d)*v_color.a*v_sparkle*3.0;
+    float dotMask=smoothstep(.50,.08,d);
+    float fillA=dotMask*v_color.a*.42;
+    float sparkleA=dotMask*v_color.a*v_sparkle*2.1;
+    float a=max(fillA,sparkleA);
     if(a<.006)discard; gl_FragColor=vec4(v_color.rgb,a);
   } else gl_FragColor=v_color;
 }`;
@@ -380,7 +383,7 @@ function buildGeometry(){
     // More even angular distribution = smoother carpet-like local response.
     const tt=((i+.35*Math.random())/n)*Math.PI*2;
     const edge=heartPoint(tt), layerRoll=Math.random();
-    const outerLayer=layerRoll>.36, middleLayer=layerRoll>.15 && layerRoll<=.36;
+    const outerLayer=layerRoll>.54, middleLayer=layerRoll>.22 && layerRoll<=.54;
     const r=outerLayer
       ? .82+Math.pow(Math.random(),.62)*.155
       : middleLayer
@@ -408,7 +411,7 @@ function buildGeometry(){
     const trunkSoft=bottomness*centerline;
     const tintBase=Math.max(0,Math.min(1,rawTint));
     const tint=0.5 + (tintBase-0.5)*(1-0.15*trunkSoft);
-    const alphaBase=outerLayer ? .48+Math.random()*.28 : middleLayer ? .24+Math.random()*.20 : .12+Math.random()*.13;
+    const alphaBase=outerLayer ? .36+Math.random()*.18 : middleLayer ? .30+Math.random()*.18 : .18+Math.random()*.16;
     const sizeBase=outerLayer ? 1.04+Math.random()*.74 : middleLayer ? .78+Math.random()*.46 : .58+Math.random()*.26;
     const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn)*(1-.28*bottomRound*centerline)*(1-.18*roundedTip);
     const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn)*(1-.18*bottomRound*centerline)*(1-.12*roundedTip);
@@ -514,6 +517,8 @@ function drawHeart(){
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.useProgram(heartProgram);setHeartUniforms();
   bindHeartAttributes(heartBuffer);
   gl.uniform1f(heartLoc.liftPass,1);gl.uniform1f(heartLoc.pointPass,0);gl.drawArrays(gl.LINES,0,heartBuffer.count);
+  bindHeartAttributes(pointBuffer);gl.uniform1f(heartLoc.liftPass,0);gl.uniform1f(heartLoc.pointPass,1);gl.drawArrays(gl.POINTS,0,pointBuffer.count);
+  bindHeartAttributes(heartBuffer);
   gl.uniform1f(heartLoc.liftPass,0);gl.uniform1f(heartLoc.pointPass,0);gl.drawArrays(gl.LINES,0,heartBuffer.count);
   bindHeartAttributes(pointBuffer);gl.uniform1f(heartLoc.pointPass,1);gl.drawArrays(gl.POINTS,0,pointBuffer.count);
 }
