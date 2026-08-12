@@ -399,9 +399,10 @@ function buildGeometry(){
     if(centralColumn>.68 && Math.random()<(.38 + bottomRound*.22)) hx += (Math.random()<.5?-1:1) * (.38 + Math.random()*(.62 + bottomRound*.34));
     const phase=Math.random()*Math.PI*2;
     const depth=outerLayer ? .66+Math.random()*.34 : middleLayer ? .32+Math.random()*.34 : .06+Math.random()*.24;
-    const ca=Math.random()*Math.PI*2, cr=.75+Math.pow(Math.random(),1.7)*5.8;
-    const coreBias=centralColumn*centralColumn*(Math.random()<.5?-1:1)*(.55+Math.random()*1.20);
-    const cx=Math.cos(ca)*cr+coreBias, cy=Math.sin(ca)*cr;
+    const rootS=.018+Math.random()*.055;
+    const rootJitter=(outerLayer?.16:middleLayer?.12:.08)*(1-centralColumn*.55);
+    const ca=Math.random()*Math.PI*2, cr=Math.random()*rootJitter;
+    const cx=hx*rootS+Math.cos(ca)*cr, cy=hy*rootS+Math.sin(ca)*cr;
     const rawTint=Math.random()*0.92 + 0.04 + (Math.random()-0.5)*0.10;
     const bottomness=Math.max(0,Math.min(1,(hy-1.5)/12.0));
     const centerline=Math.max(0,1-Math.min(1,Math.abs(hx)/4.8));
