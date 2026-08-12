@@ -362,8 +362,8 @@ function heartPoint(t){
   y = y*.925 - .18;
   return {x, y};
 }
-function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)return 920;return 1120;}
-function segmentsPerRay(){return W<=760?10:12;}
+function particleCount(){if(W<=430)return 680;if(W<=760)return 820;if(W<=1200)return 920;return 1120;}
+function segmentsPerRay(){return W<=760?12:12;}
 const HEART_INSTANCES=[
   {x:0,y:0,scale:1,beat:0,count:1},
 ];
@@ -443,15 +443,15 @@ function layout(){
   if(landscape){const scale=Math.min(W/43,H/31.7);return{cx:W*.51,cy:H*.57,scale};}
   if(mobile){
     const safeTop=Math.max(82,H*.11),safeBottom=Math.max(38,H*.05),usableH=H-safeTop-safeBottom;
-    const scale=Math.min(W/43.6,usableH/38.4), halfH=19.2*scale;
-    let cy=safeTop+usableH*.53; cy=Math.max(safeTop+halfH,Math.min(H-safeBottom-halfH,cy));
+    const scale=Math.min(W/34.8,usableH/31.2), halfH=15.6*scale;
+    let cy=safeTop+usableH*.51; cy=Math.max(safeTop+halfH,Math.min(H-safeBottom-halfH,cy));
     return{cx:W*.50,cy,scale};
   }
   return{cx:W*.50,cy:H*.57,scale:Math.min(W/42.2,H/35.8)};
 }
 
 function resize(){
-  W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,W<=760?1.55:1.9);
+  W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,W<=760?2.05:1.9);
   canvas.width=Math.max(1,Math.round(W*dpr));canvas.height=Math.max(1,Math.round(H*dpr));
   canvas.style.width=`${W}px`;canvas.style.height=`${H}px`;gl.viewport(0,0,canvas.width,canvas.height);buildGeometry();
 }
