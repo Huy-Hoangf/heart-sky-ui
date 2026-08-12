@@ -366,11 +366,6 @@ function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)re
 function segmentsPerRay(){return W<=760?10:12;}
 const HEART_INSTANCES=[
   {x:0,y:0,scale:1,beat:0,count:1},
-  {x:14.8,y:-9.6,scale:.30,beat:.1,count:.18},
-  {x:10.4,y:-17.0,scale:.20,beat:.2,count:.13},
-  {x:-14.8,y:-9.0,scale:.24,beat:.3,count:.15},
-  {x:-11.6,y:-15.8,scale:.18,beat:.4,count:.12},
-  {x:8.4,y:10.5,scale:.18,beat:.5,count:.12},
 ];
 
 function buildGeometry(){
