@@ -358,16 +358,16 @@ function buildGeometry(){
         ? .56+Math.pow(Math.random(),.72)*.26
         : .30+Math.pow(Math.random(),.82)*.30;
     let hx=edge.x*r, hy=edge.y*r;
-    const bottomRound=Math.max(0,Math.min(1,(hy-1.55)/5.4));
-    const bottomCenter=Math.max(0,1-Math.min(1,Math.abs(hx)/5.8));
-    const bottomCap=bottomRound*bottomRound*bottomCenter;
-    const capCurve=1.0-Math.pow(1.0-bottomCenter,2.2);
-    const capY=4.15 + Math.pow(Math.min(1,Math.abs(hx)/5.8),1.65)*2.55;
-    if(hy>capY) hy=capY+(hy-capY)*(.24+.26*(1-bottomCap));
-    hx *= 1.0 + bottomRound*.12 + capCurve*bottomRound*.16;
-    hy -= bottomCap*.56;
+    const bottomRound=Math.max(0,Math.min(1,(hy-1.85)/5.25));
+    const bottomX=Math.min(1,Math.abs(hx)/6.4);
+    const bottomCenter=1.0-bottomX;
+    const roundedTip=bottomRound*bottomRound*bottomCenter;
+    const tipLimit=7.55 - Math.pow(bottomX,.74)*3.35;
+    if(hy>tipLimit) hy=tipLimit+(hy-tipLimit)*(.16+.42*bottomX);
+    hx *= 1.0 + bottomRound*.10 + bottomCenter*bottomRound*.08;
+    hy -= roundedTip*.10;
     const centralColumn=Math.max(0,1-Math.min(1,Math.abs(hx)/2.35))*Math.max(0,Math.min(1,(hy+10.5)/15.5));
-    if(centralColumn>.66 && Math.random()<(.42 + bottomRound*.34)) hx += (Math.random()<.5?-1:1) * (.48 + Math.random()*(.82 + bottomRound*.64));
+    if(centralColumn>.68 && Math.random()<(.38 + bottomRound*.22)) hx += (Math.random()<.5?-1:1) * (.38 + Math.random()*(.62 + bottomRound*.34));
     const phase=Math.random()*Math.PI*2;
     const depth=outerLayer ? .66+Math.random()*.34 : middleLayer ? .32+Math.random()*.34 : .06+Math.random()*.24;
     const ca=Math.random()*Math.PI*2, cr=.75+Math.pow(Math.random(),1.7)*5.8;
@@ -381,8 +381,8 @@ function buildGeometry(){
     const tint=0.5 + (tintBase-0.5)*(1-0.15*trunkSoft);
     const alphaBase=outerLayer ? .48+Math.random()*.28 : middleLayer ? .24+Math.random()*.20 : .12+Math.random()*.13;
     const sizeBase=outerLayer ? 1.04+Math.random()*.74 : middleLayer ? .78+Math.random()*.46 : .58+Math.random()*.26;
-    const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn)*(1-.42*bottomRound*centerline)*(1-.38*bottomCap);
-    const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn)*(1-.28*bottomRound*centerline)*(1-.24*bottomCap);
+    const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn)*(1-.28*bottomRound*centerline)*(1-.18*roundedTip);
+    const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn)*(1-.18*bottomRound*centerline)*(1-.12*roundedTip);
     const write=(arr,base,s)=>{arr[base]=hx;arr[base+1]=hy;arr[base+2]=cx;arr[base+3]=cy;arr[base+4]=tint;arr[base+5]=alpha;arr[base+6]=size;arr[base+7]=phase;arr[base+8]=depth;arr[base+9]=s;};
     for(let j=0;j<segs;j++){
       const s0=j/segs,s1=(j+1)/segs;
