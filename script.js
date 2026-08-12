@@ -360,16 +360,16 @@ function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)re
 function segmentsPerRay(){return W<=760?10:12;}
 const HEART_INSTANCES=[
   {x:0,y:0,scale:1,beat:0,count:1},
-  {x:12.0,y:-6.0,scale:.36,beat:.1,count:.18},
-  {x:10.8,y:-14.2,scale:.18,beat:.2,count:.08},
-  {x:-12.4,y:-7.0,scale:.22,beat:.3,count:.10},
-  {x:-13.7,y:-12.6,scale:.13,beat:.4,count:.06},
-  {x:7.8,y:8.7,scale:.14,beat:.5,count:.06},
+  {x:16.6,y:-8.8,scale:.32,beat:.1,count:.24},
+  {x:12.8,y:-17.6,scale:.19,beat:.2,count:.15},
+  {x:-16.5,y:-8.4,scale:.24,beat:.3,count:.18},
+  {x:-14.6,y:-15.3,scale:.15,beat:.4,count:.12},
+  {x:11.0,y:11.5,scale:.16,beat:.5,count:.13},
 ];
 
 function buildGeometry(){
   const baseN=particleCount(), segs=segmentsPerRay();
-  const counts=HEART_INSTANCES.map(inst=>Math.max(24,Math.round(baseN*inst.count)));
+  const counts=HEART_INSTANCES.map((inst,index)=>Math.max(index===0?24:72,Math.round(baseN*inst.count)));
   const totalPoints=counts.reduce((sum,count)=>sum+count,0);
   const rayVerts=totalPoints*segs*2;
   const rays=new Float32Array(rayVerts*14), points=new Float32Array(totalPoints*14);
