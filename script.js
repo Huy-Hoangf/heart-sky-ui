@@ -5,6 +5,7 @@ const themeToggle = document.getElementById('themeToggle');
 const themeIcon = document.getElementById('themeIcon');
 const launchWrap = document.getElementById('launchWrap');
 const launchButton = document.getElementById('launchButton');
+const miniHearts = document.getElementById('miniHearts');
 const buttons = [...document.querySelectorAll('.mode-btn')];
 const HOLD_DURATION = 200;
 
@@ -364,12 +365,22 @@ function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)re
 function segmentsPerRay(){return W<=760?10:12;}
 const HEART_INSTANCES=[
   {x:0,y:0,scale:1,beat:0,count:1},
+];
+const COMPANION_HEARTS=[
   {x:14.8,y:-9.6,scale:.30,beat:.1,count:.28},
   {x:10.4,y:-17.0,scale:.20,beat:.2,count:.20},
   {x:-14.8,y:-9.0,scale:.24,beat:.3,count:.22},
   {x:-11.6,y:-15.8,scale:.18,beat:.4,count:.18},
   {x:8.4,y:10.5,scale:.18,beat:.5,count:.18},
 ];
+
+const miniHeartEls = COMPANION_HEARTS.map((heart,index)=>{
+  const el=document.createElement('i');
+  el.className='mini-heart';
+  el.style.setProperty('--tilt',`${[-7,6,-5,8,4][index]}deg`);
+  miniHearts?.appendChild(el);
+  return el;
+});
 
 function buildGeometry(){
   const baseN=particleCount(), segs=segmentsPerRay();
@@ -526,13 +537,42 @@ function drawHeart(){
   bindHeartAttributes(pointBuffer);gl.uniform1f(heartLoc.pointPass,1);gl.drawArrays(gl.POINTS,0,pointBuffer.count);
 }
 
+function cssRgb(color){
+  return `rgb(${color.map(v=>Math.round(Math.max(0,Math.min(1,v))*255)).join(',')})`;
+}
+
+function updateMiniHearts(){
+  if(!miniHearts) return;
+  const {cx,cy,scale}=layout();
+  miniHearts.style.setProperty('--mini-reveal',String(reveal));
+  const colorA=cssRgb(rayA), colorB=cssRgb(rayB);
+  miniHeartEls.forEach((el,index)=>{
+    const heart=COMPANION_HEARTS[index];
+    const t=elapsed-heart.beat;
+    const phase=((t%1.18)+1.18)%1.18;
+    const beatA=Math.exp(-Math.pow((phase-.10)/.052,2));
+    const beatB=Math.exp(-Math.pow((phase-.25)/.072,2));
+    const driftX=Math.sin(t*.18+index*.7)*scale*.10;
+    const driftY=Math.cos(t*.16+index*.5)*scale*.08;
+    const beat=1+(beatA*.115+beatB*.065)*idleMix;
+    const size=Math.max(22,scale*19.5*heart.scale);
+    el.style.setProperty('--x',`${cx+heart.x*scale+driftX}px`);
+    el.style.setProperty('--y',`${cy+heart.y*scale+driftY}px`);
+    el.style.setProperty('--size',`${size}px`);
+    el.style.setProperty('--beat',String(beat));
+    el.style.setProperty('--heart-a',colorA);
+    el.style.setProperty('--heart-b',colorB);
+    el.style.opacity=String(.90*reveal);
+  });
+}
+
 function render(now){
   let dt=(now-lastTime)/1000;lastTime=now;dt=Math.min(Math.max(dt,1/240),1/30);elapsed+=dt;
   [reveal,revealV]=spring(reveal,revealV,revealTarget,dt,1.08,.90);
   updatePointer(dt);
   smoothColor(rayA,targetRayA,dt,1.75);smoothColor(rayB,targetRayB,dt,1.75);
   smoothColor(bgA,targetBgA,dt,.72);smoothColor(bgB,targetBgB,dt,.72);smoothColor(bgC,targetBgC,dt,.72);
-  drawBackground();drawHeart();requestAnimationFrame(render);
+  updateMiniHearts();drawBackground();drawHeart();requestAnimationFrame(render);
 }
 
 function selectTheme(name){
