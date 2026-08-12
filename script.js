@@ -14,8 +14,8 @@ window.addEventListener('error', () => app?.classList.add('render-fallback'));
 const themes = {
   predawn: {
     label: 'Pre-dawn', icon: 'orbit',
-    rayA: [1.00, 0.82, 0.54], rayB: [1.00, 0.34, 0.62],
-    bgA: [0.46, 0.40, 0.74], bgB: [0.24, 0.22, 0.54], bgC: [0.08, 0.12, 0.30],
+    rayA: [1.00, 0.88, 0.50], rayB: [1.00, 0.26, 0.58],
+    bgA: [0.36, 0.32, 0.68], bgB: [0.18, 0.18, 0.44], bgC: [0.05, 0.08, 0.24],
   },
   sunrise: {
     label: 'Sunrise', icon: 'sunrise',
@@ -34,8 +34,8 @@ const themes = {
   },
   sunset: {
     label: 'Sunset', icon: 'sunset',
-    rayA: [0.02, 0.24, 0.86], rayB: [0.32, 0.96, 1.00],
-    bgA: [0.90, 0.38, 0.22], bgB: [0.62, 0.12, 0.30], bgC: [0.30, 0.14, 0.50],
+    rayA: [0.00, 0.18, 0.98], rayB: [0.22, 1.00, 1.00],
+    bgA: [0.88, 0.30, 0.18], bgB: [0.54, 0.08, 0.28], bgC: [0.22, 0.10, 0.44],
   },
   night: {
     label: 'Night', icon: 'moon',
@@ -116,8 +116,10 @@ void main(){
   col=mix(col,u_bgA,b1*.94); col=mix(col,u_bgB,b2*.88); col=mix(col,u_bgC,b3*.84);
   col=mix(col,mix(u_bgA,u_bgB,.5),b4*.56);
   col=mix(col,mix(u_bgB,u_bgC,.46),touch*.20);
-  float stage=1.0-smoothstep(.12,.58,length(vec2((uv.x-.5)*asp,uv.y-.57)));
-  col=mix(col,mix(col,vec3(.18,.20,.36),.34),stage*.38);
+  float mobile=1.0-smoothstep(.78,1.18,asp);
+  float stage=1.0-smoothstep(.10,.60,length(vec2((uv.x-.5)*asp,uv.y-.55)));
+  vec3 stageTone=mix(vec3(.18,.20,.36),vec3(.055,.070,.18),mobile);
+  col=mix(col,mix(col,stageTone,.40+.28*mobile),stage*(.40+.24*mobile));
   col=mix(col,vec3(1.),.006);
   gl_FragColor=vec4(col,1.);
 }`;
@@ -286,10 +288,12 @@ void main(){
   vec3 col=mix(driftA,driftB,twoTone);
   float waveGlow=pulseWave*(.24+.34*smoothstep(.48,1.0,a_s));
   float innerHalo=exp(-pow((a_s-.30)/.19,2.0))*smoothstep(.18,1.0,reveal);
+  float mobileBoost=1.0+smoothstep(0.0,.78,u_resolution.x/u_resolution.y)*.42;
   col=mix(col,vec3(1.0,.95,.92),waveGlow*.74);
   col=mix(col,vec3(1.0,.88,.84),innerHalo*.10);
+  col=mix(col,vec3(1.0),.055*(mobileBoost-1.0));
   float rootFade=smoothstep(.18,.50,a_s);
-  float layerAlpha=mix(.42,1.02,a_depth) + innerLayer*.28;
+  float layerAlpha=(mix(.42,1.02,a_depth) + innerLayer*.28)*mobileBoost;
   float edge=smoothstep(.76,1.0,a_s);
   float sparkleSeed=sin(a_phase*37.13 + floor(t*2.0)*1.73);
   float sparkle=edge*step(.982,sparkleSeed)*(.06+.36*beatEnergy)*smoothstep(.36,1.0,heartScale);
