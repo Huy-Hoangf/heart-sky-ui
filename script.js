@@ -14,33 +14,33 @@ window.addEventListener('error', () => app?.classList.add('render-fallback'));
 const themes = {
   predawn: {
     label: 'Pre-dawn', icon: 'orbit',
-    rayA: [1.00, 0.92, 0.50], rayB: [1.00, 0.18, 0.34],
-    bgA: [0.62, 0.56, 0.98], bgB: [0.34, 0.31, 0.82], bgC: [0.14, 0.18, 0.52],
+    rayA: [1.00, 0.82, 0.56], rayB: [0.98, 0.34, 0.52],
+    bgA: [0.66, 0.60, 0.96], bgB: [0.42, 0.36, 0.78], bgC: [0.18, 0.23, 0.50],
   },
   sunrise: {
     label: 'Sunrise', icon: 'sunrise',
-    rayA: [0.02, 0.08, 0.88], rayB: [0.00, 0.92, 0.90],
-    bgA: [1.00, 0.78, 0.54], bgB: [0.98, 0.43, 0.38], bgC: [0.82, 0.26, 0.58],
+    rayA: [0.10, 0.18, 0.74], rayB: [0.58, 0.90, 0.92],
+    bgA: [1.00, 0.74, 0.58], bgB: [0.96, 0.46, 0.42], bgC: [0.72, 0.34, 0.66],
   },
   daytime: {
     label: 'Daytime', icon: 'sun',
-    rayA: [1.00, 0.02, 0.30], rayB: [1.00, 0.74, 0.08],
-    bgA: [0.54, 0.82, 1.00], bgB: [0.32, 0.60, 0.96], bgC: [0.18, 0.42, 0.82],
+    rayA: [0.96, 0.26, 0.40], rayB: [1.00, 0.72, 0.30],
+    bgA: [0.58, 0.80, 0.98], bgB: [0.38, 0.62, 0.92], bgC: [0.24, 0.48, 0.78],
   },
   dusk: {
     label: 'Dusk', icon: 'dusk',
-    rayA: [0.00, 1.00, 0.76], rayB: [1.00, 0.96, 0.36],
-    bgA: [0.68, 0.48, 0.92], bgB: [0.42, 0.25, 0.78], bgC: [0.16, 0.20, 0.56],
+    rayA: [0.72, 0.96, 0.88], rayB: [1.00, 0.84, 0.58],
+    bgA: [0.66, 0.46, 0.86], bgB: [0.40, 0.28, 0.70], bgC: [0.18, 0.22, 0.50],
   },
   sunset: {
     label: 'Sunset', icon: 'sunset',
-    rayA: [0.00, 0.10, 0.98], rayB: [0.00, 0.94, 1.00],
-    bgA: [1.00, 0.66, 0.28], bgB: [1.00, 0.28, 0.44], bgC: [0.62, 0.20, 0.86],
+    rayA: [0.12, 0.20, 0.78], rayB: [0.52, 0.86, 0.96],
+    bgA: [1.00, 0.62, 0.34], bgB: [0.94, 0.32, 0.46], bgC: [0.58, 0.28, 0.78],
   },
   night: {
     label: 'Night', icon: 'moon',
-    rayA: [1.00, 0.86, 0.40], rayB: [1.00, 0.24, 0.58],
-    bgA: [0.28, 0.36, 0.82], bgB: [0.12, 0.17, 0.48], bgC: [0.04, 0.06, 0.18],
+    rayA: [1.00, 0.80, 0.48], rayB: [0.96, 0.32, 0.54],
+    bgA: [0.24, 0.32, 0.70], bgB: [0.10, 0.15, 0.42], bgC: [0.04, 0.06, 0.18],
   },
 };
 
@@ -110,14 +110,14 @@ void main(){
   vec2 c3=vec2(.52+sin(t*.034+2.4)*.13,-.20+cos(t*.039+1.1)*.11);
   vec2 c4=vec2(-.08+cos(t*.028+.8)*.22,-.45+sin(t*.034+2.1)*.11);
   vec2 mp=vec2((u_pointer.x/u_resolution.x-.5)*asp,.5-u_pointer.y/u_resolution.y);
-  float touch=blob(p,mp,.58)*u_pointerStrength;
+  float touch=blob(p,mp,.62)*u_pointerStrength;
   float b1=blob(p,c1,1.02), b2=blob(p,c2,.98), b3=blob(p,c3,1.02), b4=blob(p,c4,1.14);
   vec3 col=vec3(.945,.955,.990);
   col=mix(col,u_bgA,b1*.94); col=mix(col,u_bgB,b2*.88); col=mix(col,u_bgC,b3*.84);
   col=mix(col,mix(u_bgA,u_bgB,.5),b4*.56);
-  col=mix(col,mix(u_bgB,u_bgC,.46),touch*.42);
+  col=mix(col,mix(u_bgB,u_bgC,.46),touch*.20);
   float stage=1.0-smoothstep(.12,.58,length(vec2((uv.x-.5)*asp,uv.y-.57)));
-  col=mix(col,mix(col,vec3(.20,.23,.42),.28),stage*.34);
+  col=mix(col,mix(col,vec3(.18,.20,.36),.34),stage*.38);
   col=mix(col,vec3(1.),.006);
   gl_FragColor=vec4(col,1.);
 }`;
@@ -200,15 +200,15 @@ void main(){
     float hitS=sat(dot(ip-start,ray)/len2);
     vec2 hitPoint=start+ray*hitS;
     float d=length(ip-hitPoint);
-    float radius=min(u_resolution.x,u_resolution.y)*.158;
-    float nearRay=1.0-smoothstep(radius*.18,radius,d);
+    float radius=min(u_resolution.x,u_resolution.y)*.182;
+    float nearRay=1.0-smoothstep(radius*.10,radius,d);
 
     // Fiber response: close fibers bend most; neighboring fibers bend less.
     float local=a_s-hitS;
-    float aroundHit=exp(-abs(local)*7.8);
-    float downstream=smoothstep(-.035,.060,local);
-    float shortTail=exp(-max(local,0.0)*4.9);
-    float tail=sat(local/.285);
+    float aroundHit=exp(-abs(local)*4.6);
+    float downstream=smoothstep(-.10,.18,local);
+    float shortTail=exp(-max(local,0.0)*2.8);
+    float tail=sat((local+.10)/.48);
     tail=smoothPulse(tail)*shortTail;
 
     // Older impulses continue moving, but fade quickly and smoothly.
@@ -219,32 +219,32 @@ void main(){
     vec2 fromBrush=basePos-ip;
     float along=dot(fromBrush,dir);
     float cross=dot(fromBrush,side);
-    float sweep=exp(-(cross*cross)/(radius*radius*.42) - (along*along)/(radius*radius*2.55));
-    float fingertip=1.0-smoothstep(radius*.18,radius*.82,length(fromBrush));
-    float comb=sat(sweep*.82 + fingertip*.34);
+    float sweep=exp(-(cross*cross)/(radius*radius*.74) - (along*along)/(radius*radius*3.8));
+    float fingertip=1.0-smoothstep(radius*.06,radius*.92,length(fromBrush));
+    float comb=sat(sweep*.62 + fingertip*.24);
 
-    // Main brush follows drag direction. Tip gets more freedom like a real flexible fiber.
-    float bodyWeight=.56*aroundHit + .22*downstream*tail + .42*comb;
-    vec2 brush=dir*(5.60+8.80*tail+3.80*comb)*bodyWeight;
-    vec2 nap=side*clamp(-cross/radius,-1.0,1.0)*(1.8+3.2*tail)*comb;
+    // The brush behaves like a soft palm of fibers, so no single sharp point forms.
+    float bodyWeight=.30*aroundHit + .20*downstream*tail + .52*comb;
+    vec2 brush=dir*(2.65+4.40*tail+2.10*comb)*bodyWeight;
+    vec2 nap=side*clamp(-cross/radius,-1.0,1.0)*(2.35+3.80*tail)*comb;
 
     // Small damped overshoot after the pointer has passed: rope-like, but not wavy/cartoonish.
     float vN=dot(iv,normal);
-    float overshoot=sin(age*3.15 - tail*.96) * exp(-age*1.92);
-    vec2 elastic=normal*clamp(vN/1050.0,-1.0,1.0)*(3.40+4.60*tail)*overshoot*downstream*tail;
+    float overshoot=sin(age*2.35 - tail*.72) * exp(-age*1.62);
+    vec2 elastic=normal*clamp(vN/1250.0,-1.0,1.0)*(1.80+2.90*tail)*overshoot*downstream*tail;
 
     displacement += (brush + nap + elastic) * max(nearRay,comb*.72) * decay * is;
   }
 
   vec2 pointerVector=u_pointer-basePos;
   float pointerDistance=length(pointerVector);
-  float fieldRadius=min(u_resolution.x,u_resolution.y)*.205;
-  float field=1.0-smoothstep(fieldRadius*.18,fieldRadius,pointerDistance);
+  float fieldRadius=min(u_resolution.x,u_resolution.y)*.255;
+  float field=1.0-smoothstep(fieldRadius*.06,fieldRadius,pointerDistance);
   vec2 pointerDir=pointerDistance>1.0 ? pointerVector/pointerDistance : normal;
   float liveFiber=smoothstep(.14,1.0,a_s);
   float magnetic=field*u_pointerStrength*liveFiber*reveal;
-  displacement += pointerDir*magnetic*(5.8+5.2*tipFlex);
-  displacement += normal*sin(pointerDistance*.018-t*3.0+a_phase*.23)*field*field*u_pointerStrength*(1.6+3.0*tipFlex)*reveal;
+  displacement += pointerDir*magnetic*(.90+1.10*tipFlex);
+  displacement += normal*sin(pointerDistance*.014-t*2.2+a_phase*.23)*field*field*u_pointerStrength*(1.2+2.1*tipFlex)*reveal;
 
   // Tip flexibility + subtle auto-ripple make the default motion easier to notice.
   float micro=sin(t*.13+a_phase*.14+a_s*1.62)*(.07+.24*tipFlex);
@@ -265,15 +265,15 @@ void main(){
   gl_Position=vec4(clip*vec2(1.,-1.),0.,1.);
   gl_PointSize=a_size*u_dpr;
 
-  float organicTint=sat(a_tint + .10*sin(a_phase*.77+t*.040) + .07*sin(a_depth*5.2+t*.028));
+  float organicTint=sat(a_tint + .07*sin(a_phase*.77+t*.032) + .05*sin(a_depth*5.2+t*.024));
   float twoTone=smoothstep(.10,.90,organicTint);
-  vec3 driftA=mix(u_rayA,u_rayB,.10+.07*sin(t*.030+a_depth*2.6));
-  vec3 driftB=mix(u_rayB,u_rayA,.08+.06*sin(t*.026+a_phase*.19));
+  vec3 driftA=mix(u_rayA,u_rayB,.08+.045*sin(t*.024+a_depth*2.6));
+  vec3 driftB=mix(u_rayB,u_rayA,.07+.040*sin(t*.021+a_phase*.19));
   vec3 col=mix(driftA,driftB,twoTone);
   float waveGlow=pulseWave*(.24+.34*smoothstep(.48,1.0,a_s));
   float innerHalo=exp(-pow((a_s-.30)/.19,2.0))*smoothstep(.18,1.0,reveal);
-  col=mix(col,vec3(1.0,.94,.98),waveGlow);
-  col=mix(col,vec3(1.0,.90,.98),innerHalo*.12);
+  col=mix(col,vec3(1.0,.95,.92),waveGlow*.74);
+  col=mix(col,vec3(1.0,.88,.84),innerHalo*.10);
   float rootFade=smoothstep(.18,.50,a_s);
   float layerAlpha=mix(.54,1.28,a_depth) + innerLayer*.22;
   float edge=smoothstep(.76,1.0,a_s);
