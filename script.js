@@ -139,6 +139,7 @@ const HEART_VS=`
 precision highp float;
 attribute vec2 a_heart; attribute vec2 a_core;
 attribute float a_tint,a_alpha,a_size,a_phase,a_depth,a_s;
+attribute vec4 a_inst;
 uniform vec2 u_resolution,u_center,u_pointer;
 uniform float u_scale,u_time,u_dpr,u_idleMix,u_reveal,u_liftPass;
 uniform float u_pointerStrength;
@@ -155,7 +156,10 @@ float sat(float x){return clamp(x,0.,1.);}
 float smoothPulse(float x){return x*x*(3.0-2.0*x);} 
 
 void main(){
-  float t=u_time;
+  float t=u_time-a_inst.w;
+  float globalT=u_time;
+  float heartScale=max(a_inst.z,.12);
+  vec2 instCenter=u_center+a_inst.xy*u_scale;
   vec2 hp=a_heart;
 
   // Default auto motion: a soft continuous ripple. It is visible enough to read,
@@ -174,11 +178,11 @@ void main(){
   vec2 flow=(vec2(nx,ny)*(.013+a_depth*.007) + vec2(sway*.004,sin(t*.13+a_phase*.13)*.003)) * u_idleMix;
   hp=hp*breath+flow;
 
-  vec2 drift=vec2(sin(t*.026)+.28*sin(t*.014+1.7),cos(t*.024+.5)+.24*sin(t*.012+2.2))*u_scale*.008;
+  vec2 drift=vec2(sin(t*.026)+.28*sin(t*.014+1.7),cos(t*.024+.5)+.24*sin(t*.012+2.2))*u_scale*.008*heartScale;
   float innerLayer=smoothstep(.18,.64,a_s)*(1.0-smoothstep(.66,1.0,a_s))*(1.0-a_depth);
   float layerScale=1.0 + (a_depth-.5)*.020*smoothstep(.20,1.0,a_s) - innerLayer*.040;
-  vec2 endp=u_center+hp*u_scale*layerScale+drift*(.25+a_depth*.55);
-  vec2 start=u_center+a_core*(1.+sin(t*.20+a_phase*.05)*.012)+drift*.035;
+  vec2 endp=instCenter+hp*u_scale*heartScale*layerScale+drift*(.25+a_depth*.55);
+  vec2 start=instCenter+a_core*u_scale*heartScale*(1.+sin(t*.20+a_phase*.05)*.012)+drift*.035;
   float reveal=smoothstep(0.0,1.0,u_reveal);
   float bloom=1.0-pow(1.0-reveal,2.4);
   endp=mix(start,endp,bloom);
@@ -261,17 +265,18 @@ void main(){
   float pulseWave=exp(-pow((a_s-waveFront)/.062,2.0))*beatEnergy*reveal;
   displacement += normal*pulseWave*(.58+1.35*tipFlex)*edgeContain;
 
+  displacement *= .42+.58*heartScale;
   vec2 pos=basePos+displacement;
-  if(u_liftPass>.5) pos += vec2(0.0,u_scale*.018);
-  v_local=(pos-u_center)/u_scale;
+  if(u_liftPass>.5) pos += vec2(0.0,u_scale*.018*heartScale);
+  v_local=(pos-instCenter)/(u_scale*heartScale);
   vec2 clip=(pos/u_resolution)*2.-1.;
   gl_Position=vec4(clip*vec2(1.,-1.),0.,1.);
-  gl_PointSize=a_size*u_dpr;
+  gl_PointSize=a_size*u_dpr*(.55+.45*sqrt(heartScale));
 
-  float organicTint=sat(a_tint + .07*sin(a_phase*.77+t*.032) + .05*sin(a_depth*5.2+t*.024));
+  float organicTint=sat(a_tint + .07*sin(a_phase*.77+globalT*.032) + .05*sin(a_depth*5.2+globalT*.024));
   float twoTone=smoothstep(.10,.90,organicTint);
-  vec3 driftA=mix(u_rayA,u_rayB,.08+.045*sin(t*.024+a_depth*2.6));
-  vec3 driftB=mix(u_rayB,u_rayA,.07+.040*sin(t*.021+a_phase*.19));
+  vec3 driftA=mix(u_rayA,u_rayB,.08+.045*sin(globalT*.024+a_depth*2.6));
+  vec3 driftB=mix(u_rayB,u_rayA,.07+.040*sin(globalT*.021+a_phase*.19));
   vec3 col=mix(driftA,driftB,twoTone);
   float waveGlow=pulseWave*(.24+.34*smoothstep(.48,1.0,a_s));
   float innerHalo=exp(-pow((a_s-.30)/.19,2.0))*smoothstep(.18,1.0,reveal);
@@ -314,12 +319,13 @@ void main(){
 
 const heartProgram=makeProgram(HEART_VS,HEART_FS);
 const heartBuffer=gl.createBuffer(), pointBuffer=gl.createBuffer();
-const STRIDE=10*4;
+const STRIDE=14*4;
 const heartLoc={
   heart:gl.getAttribLocation(heartProgram,'a_heart'), core:gl.getAttribLocation(heartProgram,'a_core'),
   tint:gl.getAttribLocation(heartProgram,'a_tint'), alpha:gl.getAttribLocation(heartProgram,'a_alpha'),
   size:gl.getAttribLocation(heartProgram,'a_size'), phase:gl.getAttribLocation(heartProgram,'a_phase'),
   depth:gl.getAttribLocation(heartProgram,'a_depth'), s:gl.getAttribLocation(heartProgram,'a_s'),
+  inst:gl.getAttribLocation(heartProgram,'a_inst'),
   res:gl.getUniformLocation(heartProgram,'u_resolution'), center:gl.getUniformLocation(heartProgram,'u_center'),
   scale:gl.getUniformLocation(heartProgram,'u_scale'), time:gl.getUniformLocation(heartProgram,'u_time'),
   rayA:gl.getUniformLocation(heartProgram,'u_rayA'), rayB:gl.getUniformLocation(heartProgram,'u_rayB'),
@@ -334,7 +340,7 @@ const heartLoc={
 
 function bindHeartAttributes(buffer){
   gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
-  const attrs=[[heartLoc.heart,2,0],[heartLoc.core,2,2],[heartLoc.tint,1,4],[heartLoc.alpha,1,5],[heartLoc.size,1,6],[heartLoc.phase,1,7],[heartLoc.depth,1,8],[heartLoc.s,1,9]];
+  const attrs=[[heartLoc.heart,2,0],[heartLoc.core,2,2],[heartLoc.tint,1,4],[heartLoc.alpha,1,5],[heartLoc.size,1,6],[heartLoc.phase,1,7],[heartLoc.depth,1,8],[heartLoc.s,1,9],[heartLoc.inst,4,10]];
   for(const [loc,size,off] of attrs){gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,STRIDE,off*4);}
 }
 
@@ -352,12 +358,24 @@ function heartPoint(t){
 }
 function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)return 920;return 1120;}
 function segmentsPerRay(){return W<=760?14:18;}
+const HEART_INSTANCES=[
+  {x:0,y:0,scale:1,beat:0,count:1},
+  {x:12.2,y:-5.5,scale:.43,beat:.1,count:.34},
+  {x:10.8,y:-14.0,scale:.22,beat:.2,count:.18},
+  {x:-12.6,y:-6.8,scale:.27,beat:.3,count:.22},
+  {x:-13.8,y:-12.3,scale:.15,beat:.4,count:.14},
+  {x:7.8,y:8.5,scale:.17,beat:.5,count:.15},
+];
 
 function buildGeometry(){
-  const n=particleCount(), segs=segmentsPerRay();
-  const rayVerts=n*segs*2;
-  const rays=new Float32Array(rayVerts*10), points=new Float32Array(n*10);
-  let rp=0;
+  const baseN=particleCount(), segs=segmentsPerRay();
+  const counts=HEART_INSTANCES.map(inst=>Math.max(48,Math.round(baseN*inst.count)));
+  const totalPoints=counts.reduce((sum,count)=>sum+count,0);
+  const rayVerts=totalPoints*segs*2;
+  const rays=new Float32Array(rayVerts*14), points=new Float32Array(totalPoints*14);
+  let rp=0, pp=0;
+  HEART_INSTANCES.forEach((inst,instIndex)=>{
+  const n=counts[instIndex];
   for(let i=0;i<n;i++){
     // More even angular distribution = smoother carpet-like local response.
     const tt=((i+.35*Math.random())/n)*Math.PI*2;
@@ -394,16 +412,17 @@ function buildGeometry(){
     const sizeBase=outerLayer ? 1.04+Math.random()*.74 : middleLayer ? .78+Math.random()*.46 : .58+Math.random()*.26;
     const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn)*(1-.28*bottomRound*centerline)*(1-.18*roundedTip);
     const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn)*(1-.18*bottomRound*centerline)*(1-.12*roundedTip);
-    const write=(arr,base,s)=>{arr[base]=hx;arr[base+1]=hy;arr[base+2]=cx;arr[base+3]=cy;arr[base+4]=tint;arr[base+5]=alpha;arr[base+6]=size;arr[base+7]=phase;arr[base+8]=depth;arr[base+9]=s;};
+    const write=(arr,base,s)=>{arr[base]=hx;arr[base+1]=hy;arr[base+2]=cx;arr[base+3]=cy;arr[base+4]=tint;arr[base+5]=alpha;arr[base+6]=size;arr[base+7]=phase;arr[base+8]=depth;arr[base+9]=s;arr[base+10]=inst.x;arr[base+11]=inst.y;arr[base+12]=inst.scale;arr[base+13]=inst.beat;};
     for(let j=0;j<segs;j++){
       const s0=j/segs,s1=(j+1)/segs;
-      write(rays,rp,s0);rp+=10; write(rays,rp,s1);rp+=10;
+      write(rays,rp,s0);rp+=14; write(rays,rp,s1);rp+=14;
     }
-    write(points,i*10,1);
+    write(points,pp,1);pp+=14;
   }
+  });
   gl.bindBuffer(gl.ARRAY_BUFFER,heartBuffer);gl.bufferData(gl.ARRAY_BUFFER,rays,gl.STATIC_DRAW);
   gl.bindBuffer(gl.ARRAY_BUFFER,pointBuffer);gl.bufferData(gl.ARRAY_BUFFER,points,gl.STATIC_DRAW);
-  heartBuffer.count=rayVerts; pointBuffer.count=n;
+  heartBuffer.count=rayVerts; pointBuffer.count=totalPoints;
 }
 
 function layout(){
