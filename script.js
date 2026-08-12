@@ -14,33 +14,33 @@ window.addEventListener('error', () => app?.classList.add('render-fallback'));
 const themes = {
   predawn: {
     label: 'Pre-dawn', icon: 'orbit',
-    rayA: [1.00, 0.94, 0.54], rayB: [1.00, 0.12, 0.43],
-    bgA: [0.85, 0.81, 1.00], bgB: [0.45, 0.40, 0.87], bgC: [0.20, 0.23, 0.62],
+    rayA: [1.00, 0.92, 0.50], rayB: [1.00, 0.18, 0.34],
+    bgA: [0.62, 0.56, 0.98], bgB: [0.34, 0.31, 0.82], bgC: [0.14, 0.18, 0.52],
   },
   sunrise: {
     label: 'Sunrise', icon: 'sunrise',
-    rayA: [0.10, 0.12, 0.96], rayB: [0.00, 0.88, 0.84],
-    bgA: [1.00, 0.89, 0.66], bgB: [1.00, 0.56, 0.45], bgC: [0.91, 0.37, 0.62],
+    rayA: [0.02, 0.08, 0.88], rayB: [0.00, 0.92, 0.90],
+    bgA: [1.00, 0.78, 0.54], bgB: [0.98, 0.43, 0.38], bgC: [0.82, 0.26, 0.58],
   },
   daytime: {
     label: 'Daytime', icon: 'sun',
-    rayA: [0.92, 0.04, 0.46], rayB: [1.00, 0.62, 0.08],
-    bgA: [0.96, 0.98, 1.00], bgB: [0.50, 0.78, 1.00], bgC: [0.24, 0.49, 0.91],
+    rayA: [1.00, 0.02, 0.30], rayB: [1.00, 0.74, 0.08],
+    bgA: [0.54, 0.82, 1.00], bgB: [0.32, 0.60, 0.96], bgC: [0.18, 0.42, 0.82],
   },
   dusk: {
     label: 'Dusk', icon: 'dusk',
-    rayA: [0.00, 1.00, 0.82], rayB: [1.00, 0.94, 0.42],
-    bgA: [0.85, 0.76, 1.00], bgB: [0.50, 0.33, 0.86], bgC: [0.18, 0.25, 0.62],
+    rayA: [0.00, 1.00, 0.76], rayB: [1.00, 0.96, 0.36],
+    bgA: [0.68, 0.48, 0.92], bgB: [0.42, 0.25, 0.78], bgC: [0.16, 0.20, 0.56],
   },
   sunset: {
     label: 'Sunset', icon: 'sunset',
-    rayA: [0.08, 0.12, 0.92], rayB: [0.00, 0.84, 0.95],
-    bgA: [1.00, 0.87, 0.49], bgB: [1.00, 0.37, 0.49], bgC: [0.66, 0.30, 0.95],
+    rayA: [0.00, 0.10, 0.98], rayB: [0.00, 0.94, 1.00],
+    bgA: [1.00, 0.66, 0.28], bgB: [1.00, 0.28, 0.44], bgC: [0.62, 0.20, 0.86],
   },
   night: {
     label: 'Night', icon: 'moon',
-    rayA: [1.00, 0.78, 0.32], rayB: [1.00, 0.22, 0.62],
-    bgA: [0.37, 0.44, 0.86], bgB: [0.16, 0.21, 0.56], bgC: [0.08, 0.09, 0.28],
+    rayA: [1.00, 0.86, 0.40], rayB: [1.00, 0.24, 0.58],
+    bgA: [0.28, 0.36, 0.82], bgB: [0.12, 0.17, 0.48], bgC: [0.04, 0.06, 0.18],
   },
 };
 
@@ -116,6 +116,8 @@ void main(){
   col=mix(col,u_bgA,b1*.94); col=mix(col,u_bgB,b2*.88); col=mix(col,u_bgC,b3*.84);
   col=mix(col,mix(u_bgA,u_bgB,.5),b4*.56);
   col=mix(col,mix(u_bgB,u_bgC,.46),touch*.42);
+  float stage=1.0-smoothstep(.12,.58,length(vec2((uv.x-.5)*asp,uv.y-.57)));
+  col=mix(col,mix(col,vec3(.20,.23,.42),.28),stage*.34);
   col=mix(col,vec3(1.),.006);
   gl_FragColor=vec4(col,1.);
 }`;
@@ -310,7 +312,17 @@ function bindHeartAttributes(buffer){
   for(const [loc,size,off] of attrs){gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,STRIDE,off*4);}
 }
 
-function heartPoint(t){const s=Math.sin(t);return{x:16*s*s*s,y:-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))};}
+function heartPoint(t){
+  const s=Math.sin(t);
+  let x=16*s*s*s;
+  let y=-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));
+  if (y > 2.2) y = 2.2 + (y - 2.2) * .72;
+  if (y < -7.2) y = -7.2 + (y + 7.2) * .94;
+  const fullness = Math.max(0, 1 - Math.min(1, Math.abs(y - .5) / 12));
+  x *= 1.035 + fullness * .035;
+  y *= .96;
+  return {x, y};
+}
 function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)return 920;return 1120;}
 function segmentsPerRay(){return W<=760?14:18;}
 

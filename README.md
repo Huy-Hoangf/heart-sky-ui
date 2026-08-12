@@ -20,6 +20,8 @@ Static HTML/CSS/JavaScript project. No backend required.
 - Heart palettes now use contrasting warm/cool pairs so every theme separates the heart from the background.
 - Added true layered ray groups, a soft inner glow, a heartbeat wave, tiny edge sparkles, and slow color drift.
 - Theme colors are matched to the approved six-theme palette demo in `theme-demos/theme-palette-demo.svg`.
+- Heart silhouette is rounder, with a shorter bottom point and fuller body.
+- Backgrounds keep saturated color at the edges while a softer center stage helps the heart stand forward.
 
 ## Run
 Open `index.html`, or use VS Code Live Server.
