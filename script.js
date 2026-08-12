@@ -66,7 +66,7 @@ const pointer = {
 
 // A short history of brush impulses. Instead of bending one single line,
 // nearby fibers receive overlapping, decaying impulses -> carpet/rug-like movement.
-const IMPULSE_COUNT = 5;
+const IMPULSE_COUNT = 9;
 const impulses = Array.from({length:IMPULSE_COUNT},()=>({x:-9999,y:-9999,vx:0,vy:0,age:99,strength:0}));
 let impulseCursor = 0;
 const impulsePos = new Float32Array(IMPULSE_COUNT*2);
@@ -140,13 +140,13 @@ precision highp float;
 attribute vec2 a_heart; attribute vec2 a_core;
 attribute float a_tint,a_alpha,a_size,a_phase,a_depth,a_s;
 uniform vec2 u_resolution,u_center,u_pointer;
-uniform float u_scale,u_time,u_dpr,u_idleMix,u_reveal;
+uniform float u_scale,u_time,u_dpr,u_idleMix,u_reveal,u_liftPass;
 uniform float u_pointerStrength;
 uniform vec3 u_rayA,u_rayB;
-uniform vec2 u_impulsePos[5];
-uniform vec2 u_impulseVel[5];
-uniform float u_impulseAge[5];
-uniform float u_impulseStrength[5];
+uniform vec2 u_impulsePos[9];
+uniform vec2 u_impulseVel[9];
+uniform float u_impulseAge[9];
+uniform float u_impulseStrength[9];
 varying vec4 v_color;
 varying float v_sparkle;
 
@@ -191,7 +191,7 @@ void main(){
   float tipFlex=a_s*a_s;
 
   // Multiple decaying brush samples create a soft temporal trail rather than a sharp kink.
-  for(int i=0;i<5;i++){
+  for(int i=0;i<9;i++){
     vec2 ip=u_impulsePos[i];
     vec2 iv=u_impulseVel[i];
     float age=u_impulseAge[i];
@@ -200,8 +200,8 @@ void main(){
     float hitS=sat(dot(ip-start,ray)/len2);
     vec2 hitPoint=start+ray*hitS;
     float d=length(ip-hitPoint);
-    float radius=min(u_resolution.x,u_resolution.y)*.122;
-    float nearRay=1.0-smoothstep(radius*.22,radius,d);
+    float radius=min(u_resolution.x,u_resolution.y)*.158;
+    float nearRay=1.0-smoothstep(radius*.18,radius,d);
 
     // Fiber response: close fibers bend most; neighboring fibers bend less.
     float local=a_s-hitS;
@@ -215,17 +215,25 @@ void main(){
     float decay=exp(-age*1.24);
     float speed=min(length(iv),1200.0);
     vec2 dir = speed>2.0 ? normalize(iv) : normal;
+    vec2 side=vec2(-dir.y,dir.x);
+    vec2 fromBrush=basePos-ip;
+    float along=dot(fromBrush,dir);
+    float cross=dot(fromBrush,side);
+    float sweep=exp(-(cross*cross)/(radius*radius*.42) - (along*along)/(radius*radius*2.55));
+    float fingertip=1.0-smoothstep(radius*.18,radius*.82,length(fromBrush));
+    float comb=sat(sweep*.82 + fingertip*.34);
 
     // Main brush follows drag direction. Tip gets more freedom like a real flexible fiber.
-    float bodyWeight=.72*aroundHit + .28*downstream*tail;
-    vec2 brush=dir*(4.70+6.40*tail)*bodyWeight;
+    float bodyWeight=.56*aroundHit + .22*downstream*tail + .42*comb;
+    vec2 brush=dir*(5.60+8.80*tail+3.80*comb)*bodyWeight;
+    vec2 nap=side*clamp(-cross/radius,-1.0,1.0)*(1.8+3.2*tail)*comb;
 
     // Small damped overshoot after the pointer has passed: rope-like, but not wavy/cartoonish.
     float vN=dot(iv,normal);
     float overshoot=sin(age*3.15 - tail*.96) * exp(-age*1.92);
     vec2 elastic=normal*clamp(vN/1050.0,-1.0,1.0)*(3.40+4.60*tail)*overshoot*downstream*tail;
 
-    displacement += (brush + elastic) * nearRay * decay * is;
+    displacement += (brush + nap + elastic) * max(nearRay,comb*.72) * decay * is;
   }
 
   vec2 pointerVector=u_pointer-basePos;
@@ -252,6 +260,7 @@ void main(){
   displacement += normal*pulseWave*(.80+2.40*tipFlex);
 
   vec2 pos=basePos+displacement;
+  if(u_liftPass>.5) pos += vec2(0.0,u_scale*.018);
   vec2 clip=(pos/u_resolution)*2.-1.;
   gl_Position=vec4(clip*vec2(1.,-1.),0.,1.);
   gl_PointSize=a_size*u_dpr;
@@ -274,6 +283,12 @@ void main(){
   alpha += innerHalo*.012*a_alpha*reveal + sparkle*.026*reveal;
   float shimmer=.992+.008*sin(t*.28+a_phase*.17+a_s*2.4);
   shimmer += .003*smoothstep(.84,1.0,a_s)*sin(t*.50+a_phase*.31) + sparkle*.06;
+  if(u_liftPass>.5){
+    float liftAlpha=alpha*(.15+.18*smoothstep(.30,1.0,a_s))*smoothstep(.05,.70,reveal);
+    v_color=vec4(vec3(.035,.045,.14),liftAlpha);
+    v_sparkle=0.0;
+    return;
+  }
   v_color=vec4(col,alpha*shimmer);
   v_sparkle=sparkle;
 }`;
@@ -299,6 +314,7 @@ const heartLoc={
   scale:gl.getUniformLocation(heartProgram,'u_scale'), time:gl.getUniformLocation(heartProgram,'u_time'),
   rayA:gl.getUniformLocation(heartProgram,'u_rayA'), rayB:gl.getUniformLocation(heartProgram,'u_rayB'),
   dpr:gl.getUniformLocation(heartProgram,'u_dpr'), idleMix:gl.getUniformLocation(heartProgram,'u_idleMix'), reveal:gl.getUniformLocation(heartProgram,'u_reveal'),
+  liftPass:gl.getUniformLocation(heartProgram,'u_liftPass'),
   pointer:gl.getUniformLocation(heartProgram,'u_pointer'), pointerStrength:gl.getUniformLocation(heartProgram,'u_pointerStrength'), pointPass:gl.getUniformLocation(heartProgram,'u_pointPass'),
   impulsePos:gl.getUniformLocation(heartProgram,'u_impulsePos[0]'),
   impulseVel:gl.getUniformLocation(heartProgram,'u_impulseVel[0]'),
@@ -411,9 +427,9 @@ function updatePointer(dt){
   const speed=Math.hypot(dx,dy)/Math.max(dt,.001);
   const dist=Math.hypot(pointer.x-pointer.lastImpulseX,pointer.y-pointer.lastImpulseY);
   const since=elapsed-pointer.lastImpulseT;
-  if(pointer.strength>.035 && speed>10 && (dist>10 || since>.048)){
-    const vscale=Math.min(1.0, speed/820);
-    addImpulse(pointer.x,pointer.y,pointer.vx,pointer.vy,.18+.54*vscale);
+  if(pointer.strength>.025 && speed>7 && (dist>6 || since>.028)){
+    const vscale=Math.min(1.0, speed/760);
+    addImpulse(pointer.x,pointer.y,pointer.vx,pointer.vy,.20+.62*vscale);
     pointer.lastImpulseX=pointer.x;pointer.lastImpulseY=pointer.y;pointer.lastImpulseT=elapsed;
   }
 
@@ -458,7 +474,9 @@ function setHeartUniforms(){
 
 function drawHeart(){
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.useProgram(heartProgram);setHeartUniforms();
-  bindHeartAttributes(heartBuffer);gl.uniform1f(heartLoc.pointPass,0);gl.drawArrays(gl.LINES,0,heartBuffer.count);
+  bindHeartAttributes(heartBuffer);
+  gl.uniform1f(heartLoc.liftPass,1);gl.uniform1f(heartLoc.pointPass,0);gl.drawArrays(gl.LINES,0,heartBuffer.count);
+  gl.uniform1f(heartLoc.liftPass,0);gl.uniform1f(heartLoc.pointPass,0);gl.drawArrays(gl.LINES,0,heartBuffer.count);
   bindHeartAttributes(pointBuffer);gl.uniform1f(heartLoc.pointPass,1);gl.drawArrays(gl.POINTS,0,pointBuffer.count);
 }
 
@@ -571,11 +589,11 @@ launchButton?.addEventListener('keyup',e=>{
 
 function setPointer(x,y,on=true){
   if(!launched) return;
-  pointer.tx=x;pointer.ty=y;pointer.targetStrength=on?.92:0;
+  pointer.tx=x;pointer.ty=y;pointer.targetStrength=on?.98:0;
   if(on) pointer.lastMoveT = elapsed;
 }
 
-canvas.addEventListener('pointerdown',e=>{if(!launched)return;pointer.down=true;setPointer(e.clientX,e.clientY,true);pointer.lastMoveT=elapsed;addImpulse(e.clientX,e.clientY,0,0,.58);});
+canvas.addEventListener('pointerdown',e=>{if(!launched)return;pointer.down=true;setPointer(e.clientX,e.clientY,true);pointer.lastMoveT=elapsed;addImpulse(e.clientX,e.clientY,0,0,.72);});
 canvas.addEventListener('pointermove',e=>setPointer(e.clientX,e.clientY,true));
 canvas.addEventListener('pointerup',()=>{pointer.down=false;pointer.targetStrength=0;});
 canvas.addEventListener('pointercancel',()=>{pointer.down=false;pointer.targetStrength=0;});

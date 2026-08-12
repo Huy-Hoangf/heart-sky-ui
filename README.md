@@ -22,6 +22,8 @@ Static HTML/CSS/JavaScript project. No backend required.
 - Theme colors are matched to the approved six-theme palette demo in `theme-demos/theme-palette-demo.svg`.
 - Heart silhouette is rounder, with a shorter bottom point and fuller body.
 - Backgrounds keep saturated color at the edges while a softer center stage helps the heart stand forward.
+- Pointer/touch interaction now uses a wider swept brush trail, so rays bend like fibers under a fingertip instead of reacting to a single point.
+- A subtle lift shadow pass is drawn behind the heart to separate it from the background without a hard outline.
 
 ## Run
 Open `index.html`, or use VS Code Live Server.
