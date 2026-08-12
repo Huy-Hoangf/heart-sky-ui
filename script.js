@@ -149,6 +149,7 @@ uniform float u_impulseAge[9];
 uniform float u_impulseStrength[9];
 varying vec4 v_color;
 varying float v_sparkle;
+varying vec2 v_local;
 
 float sat(float x){return clamp(x,0.,1.);} 
 float smoothPulse(float x){return x*x*(3.0-2.0*x);} 
@@ -175,7 +176,7 @@ void main(){
 
   vec2 drift=vec2(sin(t*.026)+.28*sin(t*.014+1.7),cos(t*.024+.5)+.24*sin(t*.012+2.2))*u_scale*.008;
   float innerLayer=smoothstep(.18,.64,a_s)*(1.0-smoothstep(.66,1.0,a_s))*(1.0-a_depth);
-  float layerScale=1.0 + (a_depth-.5)*.045*smoothstep(.20,1.0,a_s) - innerLayer*.055;
+  float layerScale=1.0 + (a_depth-.5)*.020*smoothstep(.20,1.0,a_s) - innerLayer*.040;
   vec2 endp=u_center+hp*u_scale*layerScale+drift*(.25+a_depth*.55);
   vec2 start=u_center+a_core*(1.+sin(t*.20+a_phase*.05)*.012)+drift*.035;
   float reveal=smoothstep(0.0,1.0,u_reveal);
@@ -253,14 +254,16 @@ void main(){
   float wave3 = sin(t*.22 + hp.x*.045 - hp.y*.030 + a_phase*.20);
   float idleRipple = wave1*.54 + wave2*.32 + wave3*.14;
   float tipBloom=smoothstep(.42,1.0,a_s);
-  displacement += normal*micro*(.035+.08*a_depth) * (.25 + .75*u_idleMix) * rippleBoost * reveal;
-  displacement += normal*idleRipple*(.15 + .72*tipFlex) * (.09 + .12*a_depth) * u_idleMix * rippleBoost * reveal;
-  displacement += tangent*sin(t*.20+a_phase*.21)*(.035+.12*tipBloom)*u_idleMix*reveal;
+  float edgeContain=1.0-.70*smoothstep(.84,1.0,a_s);
+  displacement += normal*micro*(.030+.060*a_depth) * (.25 + .75*u_idleMix) * rippleBoost * reveal * edgeContain;
+  displacement += normal*idleRipple*(.11 + .46*tipFlex) * (.075 + .095*a_depth) * u_idleMix * rippleBoost * reveal * edgeContain;
+  displacement += tangent*sin(t*.20+a_phase*.21)*(.030+.080*tipBloom)*u_idleMix*reveal * edgeContain;
   float pulseWave=exp(-pow((a_s-waveFront)/.062,2.0))*beatEnergy*reveal;
-  displacement += normal*pulseWave*(.80+2.40*tipFlex);
+  displacement += normal*pulseWave*(.58+1.35*tipFlex)*edgeContain;
 
   vec2 pos=basePos+displacement;
   if(u_liftPass>.5) pos += vec2(0.0,u_scale*.018);
+  v_local=(pos-u_center)/u_scale;
   vec2 clip=(pos/u_resolution)*2.-1.;
   gl_Position=vec4(clip*vec2(1.,-1.),0.,1.);
   gl_PointSize=a_size*u_dpr;
@@ -293,8 +296,15 @@ void main(){
   v_sparkle=sparkle;
 }`;
 const HEART_FS=`
-precision mediump float; varying vec4 v_color; varying float v_sparkle; uniform float u_pointPass;
+precision mediump float; varying vec4 v_color; varying float v_sparkle; varying vec2 v_local; uniform float u_pointPass;
+float insideHeart(vec2 q){
+  vec2 p=vec2(q.x/17.3,(-q.y+1.18)/14.8);
+  float a=p.x*p.x+p.y*p.y-1.0;
+  float f=a*a*a-p.x*p.x*p.y*p.y*p.y;
+  return step(f,0.0);
+}
 void main(){
+  if(insideHeart(v_local)<.5) discard;
   if(u_pointPass>.5){
     vec2 q=gl_PointCoord-.5;float d=length(q);
     float a=smoothstep(.42,.05,d)*v_color.a*v_sparkle*3.0;
@@ -332,11 +342,12 @@ function heartPoint(t){
   const s=Math.sin(t);
   let x=16*s*s*s;
   let y=-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));
-  if (y > 2.2) y = 2.2 + (y - 2.2) * .72;
-  if (y < -7.2) y = -7.2 + (y + 7.2) * .94;
-  const fullness = Math.max(0, 1 - Math.min(1, Math.abs(y - .5) / 12));
-  x *= 1.035 + fullness * .035;
-  y *= .96;
+  if (y > 5.0) y = 5.0 + (y - 5.0) * .72;
+  if (y < -7.4) y = -7.4 + (y + 7.4) * .96;
+  const body = Math.max(0, 1 - Math.min(1, Math.abs(y - .2) / 13.8));
+  const lobes = Math.max(0, 1 - Math.min(1, Math.abs(y + 4.1) / 5.1));
+  x *= 1.020 + body * .040 + lobes * .075;
+  y = y*.925 - .18;
   return {x, y};
 }
 function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)return 920;return 1120;}
@@ -353,7 +364,7 @@ function buildGeometry(){
     const edge=heartPoint(tt), layerRoll=Math.random();
     const outerLayer=layerRoll>.36, middleLayer=layerRoll>.15 && layerRoll<=.36;
     const r=outerLayer
-      ? .84+Math.pow(Math.random(),.50)*.16
+      ? .82+Math.pow(Math.random(),.62)*.155
       : middleLayer
         ? .56+Math.pow(Math.random(),.72)*.26
         : .30+Math.pow(Math.random(),.82)*.30;

@@ -27,6 +27,7 @@ Static HTML/CSS/JavaScript project. No backend required.
 - Pointer shaping is softened to avoid a sharp pulled tip, and palettes are tuned toward cinematic rose, pearl, champagne, and muted cobalt tones.
 - Theme art direction is split into six distinct moods while the heart keeps the prior silhouette.
 - The lower tip uses a rounded pointed V so the center stays lowest while the point is softened.
+- Heart rendering now uses a puffy silhouette mask so stray rays are clipped inside the intended heart shape.
 
 ## Run
 Open `index.html`, or use VS Code Live Server.
