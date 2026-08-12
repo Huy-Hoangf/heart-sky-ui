@@ -364,6 +364,7 @@ function heartPoint(t){
   const lobes = Math.max(0, 1 - Math.min(1, Math.abs(y + 4.1) / 5.1));
   x *= 1.020 + body * .040 + lobes * .075;
   y = y*.925 - .18;
+  if (W <= 760) y *= 1.15;
   return {x, y};
 }
 function particleCount(){if(W<=430)return 680;if(W<=760)return 820;if(W<=1200)return 920;return 1120;}
@@ -447,11 +448,11 @@ function layout(){
   if(landscape){const scale=Math.min(W/43,H/31.7);return{cx:W*.51,cy:H*.57,scale};}
   if(mobile){
     const safeTop=Math.max(82,H*.11),safeBottom=Math.max(38,H*.05),usableH=H-safeTop-safeBottom;
-    const scale=Math.min(W/32.8,usableH/29.6), halfH=14.8*scale;
+    const scale=Math.min(W/32.8,usableH/34.0), halfH=17.0*scale;
     let cy=safeTop+usableH*.51; cy=Math.max(safeTop+halfH,Math.min(H-safeBottom-halfH,cy));
     return{cx:W*.50,cy,scale};
   }
-  return{cx:W*.50,cy:H*.57,scale:Math.min(W/39.8,H/33.8)};
+  return{cx:W*.50,cy:H*.57,scale:Math.min(W/30.6,H/26.0)};
 }
 
 function resize(){
