@@ -159,6 +159,7 @@ void main(){
   float t=u_time-a_inst.w;
   float globalT=u_time;
   float heartScale=max(a_inst.z,.12);
+  float smallHeart=1.0-smoothstep(.34,.72,heartScale);
   vec2 instCenter=u_center+a_inst.xy*u_scale;
   vec2 hp=a_heart;
 
@@ -176,13 +177,13 @@ void main(){
   float nx=sin(hp.y*.070+t*.14+a_phase*.074);
   float ny=cos(hp.x*.064-t*.12+a_phase*.066);
   float sway=sin(t*.16+a_phase*.19+a_depth*2.1);
-  vec2 flow=(vec2(nx,ny)*(.013+a_depth*.007) + vec2(sway*.004,sin(t*.13+a_phase*.13)*.003)) * u_idleMix;
+  vec2 flow=(vec2(nx,ny)*(.013+a_depth*.007) + vec2(sway*.004,sin(t*.13+a_phase*.13)*.003)) * u_idleMix * mix(.28,1.0,1.0-smallHeart);
   hp=hp*breath+flow;
 
-  vec2 drift=vec2(sin(t*.026)+.28*sin(t*.014+1.7),cos(t*.024+.5)+.24*sin(t*.012+2.2))*u_scale*.008*heartScale;
+  vec2 drift=vec2(sin(t*.026)+.28*sin(t*.014+1.7),cos(t*.024+.5)+.24*sin(t*.012+2.2))*u_scale*.008*heartScale*mix(.42,1.0,1.0-smallHeart);
   float innerLayer=smoothstep(.18,.64,a_s)*(1.0-smoothstep(.66,1.0,a_s))*(1.0-a_depth);
   float edgeInset=smoothstep(.62,1.0,a_s);
-  float layerScale=.972 + (a_depth-.5)*.010*smoothstep(.20,1.0,a_s) - innerLayer*.030 - edgeInset*.018;
+  float layerScale=.972 + (a_depth-.5)*.010*smoothstep(.20,1.0,a_s) - innerLayer*.030 - edgeInset*(.018+.052*smallHeart) - smallHeart*.024;
   vec2 endp=instCenter+hp*u_scale*heartScale*layerScale+drift*(.25+a_depth*.55);
   vec2 start=instCenter+a_core*u_scale*heartScale*(1.+sin(t*.20+a_phase*.05)*.012)+drift*.035;
   float reveal=smoothstep(0.0,1.0,u_reveal);
@@ -271,7 +272,7 @@ void main(){
   displacement *= (.42+.58*heartScale) * smallClean;
   vec2 pos=basePos+displacement;
   if(u_liftPass>.5) pos += vec2(0.0,u_scale*.018*heartScale);
-  v_local=(pos-instCenter)/(u_scale*heartScale);
+  v_local=(pos-instCenter)/(u_scale*heartScale*(1.0-.052*smallHeart));
   vec2 clip=(pos/u_resolution)*2.-1.;
   gl_Position=vec4(clip*vec2(1.,-1.),0.,1.);
   gl_PointSize=a_size*u_dpr*(.55+.45*sqrt(heartScale));
@@ -364,15 +365,15 @@ function segmentsPerRay(){return W<=760?10:12;}
 const HEART_INSTANCES=[
   {x:0,y:0,scale:1,beat:0,count:1},
   {x:14.8,y:-9.6,scale:.30,beat:.1,count:.28},
-  {x:10.4,y:-17.0,scale:.18,beat:.2,count:.18},
+  {x:10.4,y:-17.0,scale:.20,beat:.2,count:.20},
   {x:-14.8,y:-9.0,scale:.24,beat:.3,count:.22},
-  {x:-11.6,y:-15.8,scale:.15,beat:.4,count:.15},
-  {x:8.4,y:10.5,scale:.15,beat:.5,count:.15},
+  {x:-11.6,y:-15.8,scale:.18,beat:.4,count:.18},
+  {x:8.4,y:10.5,scale:.18,beat:.5,count:.18},
 ];
 
 function buildGeometry(){
   const baseN=particleCount(), segs=segmentsPerRay();
-  const counts=HEART_INSTANCES.map((inst,index)=>Math.max(index===0?24:72,Math.round(baseN*inst.count)));
+  const counts=HEART_INSTANCES.map((inst,index)=>Math.max(index===0?24:96,Math.round(baseN*inst.count)));
   const totalPoints=counts.reduce((sum,count)=>sum+count,0);
   const rayVerts=totalPoints*segs*2;
   const rays=new Float32Array(rayVerts*14), points=new Float32Array(totalPoints*14);
@@ -382,13 +383,15 @@ function buildGeometry(){
   for(let i=0;i<n;i++){
     // More even angular distribution = smoother carpet-like local response.
     const tt=((i+.35*Math.random())/n)*Math.PI*2;
+    const smallInst=inst.scale<.5;
     const edge=heartPoint(tt), layerRoll=Math.random();
-    const outerLayer=layerRoll>.66, middleLayer=layerRoll>.26 && layerRoll<=.66;
+    const outerLayer=smallInst ? layerRoll>.76 : layerRoll>.66;
+    const middleLayer=smallInst ? layerRoll>.30 && layerRoll<=.76 : layerRoll>.26 && layerRoll<=.66;
     const r=outerLayer
-      ? .78+Math.pow(Math.random(),.72)*.125
+      ? (smallInst ? .70+Math.pow(Math.random(),.82)*.100 : .78+Math.pow(Math.random(),.72)*.125)
       : middleLayer
-        ? .52+Math.pow(Math.random(),.78)*.25
-        : .28+Math.pow(Math.random(),.88)*.28;
+        ? (smallInst ? .48+Math.pow(Math.random(),.86)*.22 : .52+Math.pow(Math.random(),.78)*.25)
+        : (smallInst ? .26+Math.pow(Math.random(),.92)*.24 : .28+Math.pow(Math.random(),.88)*.28);
     let hx=edge.x*r, hy=edge.y*r;
     const bottomRound=Math.max(0,Math.min(1,(hy-1.85)/5.25));
     const bottomX=Math.min(1,Math.abs(hx)/6.4);
@@ -403,7 +406,8 @@ function buildGeometry(){
     const phase=Math.random()*Math.PI*2;
     const depth=outerLayer ? .66+Math.random()*.34 : middleLayer ? .32+Math.random()*.34 : .06+Math.random()*.24;
     const rootS=.018+Math.random()*.055;
-    const rootJitter=(outerLayer?.10:middleLayer?.08:.055)*(1-centralColumn*.55);
+    const rootBase=outerLayer ? .10 : middleLayer ? .08 : .055;
+    const rootJitter=rootBase*(smallInst ? .42 : 1.0)*(1-centralColumn*.55);
     const ca=Math.random()*Math.PI*2, cr=Math.random()*rootJitter;
     const cx=hx*rootS+Math.cos(ca)*cr, cy=hy*rootS+Math.sin(ca)*cr;
     const rawTint=Math.random()*0.92 + 0.04 + (Math.random()-0.5)*0.10;
