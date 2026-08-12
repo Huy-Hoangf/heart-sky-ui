@@ -364,16 +364,16 @@ function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)re
 function segmentsPerRay(){return W<=760?10:12;}
 const HEART_INSTANCES=[
   {x:0,y:0,scale:1,beat:0,count:1},
-  {x:14.8,y:-9.6,scale:.30,beat:.1,count:.28},
-  {x:10.4,y:-17.0,scale:.20,beat:.2,count:.20},
-  {x:-14.8,y:-9.0,scale:.24,beat:.3,count:.22},
-  {x:-11.6,y:-15.8,scale:.18,beat:.4,count:.18},
-  {x:8.4,y:10.5,scale:.18,beat:.5,count:.18},
+  {x:14.8,y:-9.6,scale:.30,beat:.1,count:.14},
+  {x:10.4,y:-17.0,scale:.20,beat:.2,count:.10},
+  {x:-14.8,y:-9.0,scale:.24,beat:.3,count:.11},
+  {x:-11.6,y:-15.8,scale:.18,beat:.4,count:.09},
+  {x:8.4,y:10.5,scale:.18,beat:.5,count:.09},
 ];
 
 function buildGeometry(){
   const baseN=particleCount(), segs=segmentsPerRay();
-  const counts=HEART_INSTANCES.map((inst,index)=>Math.max(index===0?24:96,Math.round(baseN*inst.count)));
+  const counts=HEART_INSTANCES.map((inst,index)=>Math.max(index===0?24:42,Math.round(baseN*inst.count)));
   const totalPoints=counts.reduce((sum,count)=>sum+count,0);
   const rayVerts=totalPoints*segs*2;
   const rays=new Float32Array(rayVerts*14), points=new Float32Array(totalPoints*14);
@@ -382,8 +382,10 @@ function buildGeometry(){
   const n=counts[instIndex];
   for(let i=0;i<n;i++){
     // More even angular distribution = smoother carpet-like local response.
-    const tt=((i+.35*Math.random())/n)*Math.PI*2;
     const smallInst=inst.scale<.5;
+    const seed=(instIndex*.137 + inst.scale*.19) % 1;
+    const jitter=smallInst ? (.10 + (instIndex%4)*.035) : .35;
+    const tt=(((i+jitter*Math.random())/n)+seed)*Math.PI*2;
     const edge=heartPoint(tt), layerRoll=Math.random();
     const outerLayer=smallInst ? true : layerRoll>.66;
     const middleLayer=smallInst ? false : layerRoll>.26 && layerRoll<=.66;
@@ -397,10 +399,10 @@ function buildGeometry(){
     const bottomX=Math.min(1,Math.abs(hx)/6.4);
     const bottomCenter=1.0-bottomX;
     const roundedTip=bottomRound*bottomRound*bottomCenter;
-    const tipLimit=7.55 - Math.pow(bottomX,.74)*3.35;
+    const tipLimit=7.18 - Math.pow(bottomX,.78)*2.95;
     if(hy>tipLimit) hy=tipLimit+(hy-tipLimit)*(.16+.42*bottomX);
-    hx *= 1.0 + bottomRound*.10 + bottomCenter*bottomRound*.08;
-    hy -= roundedTip*.10;
+    hx *= 1.0 + bottomRound*.11 + bottomCenter*bottomRound*.20;
+    hy -= roundedTip*.46;
     const centralColumn=Math.max(0,1-Math.min(1,Math.abs(hx)/2.35))*Math.max(0,Math.min(1,(hy+10.5)/15.5));
     if(!smallInst && centralColumn>.68 && Math.random()<(.38 + bottomRound*.22)) hx += (Math.random()<.5?-1:1) * (.38 + Math.random()*(.62 + bottomRound*.34));
     const phase=Math.random()*Math.PI*2;
