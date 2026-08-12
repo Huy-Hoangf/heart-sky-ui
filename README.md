@@ -26,7 +26,7 @@ Static HTML/CSS/JavaScript project. No backend required.
 - A subtle lift shadow pass is drawn behind the heart to separate it from the background without a hard outline.
 - Pointer shaping is softened to avoid a sharp pulled tip, and palettes are tuned toward cinematic rose, pearl, champagne, and muted cobalt tones.
 - Theme art direction is split into six distinct moods while the heart keeps the prior silhouette.
-- The lower tip is softened slightly without rounding the whole heart.
+- The lower tip uses a stronger soft cap so the bottom reads rounder without changing the whole heart.
 
 ## Run
 Open `index.html`, or use VS Code Live Server.

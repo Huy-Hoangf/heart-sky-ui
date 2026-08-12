@@ -358,11 +358,13 @@ function buildGeometry(){
         ? .56+Math.pow(Math.random(),.72)*.26
         : .30+Math.pow(Math.random(),.82)*.30;
     let hx=edge.x*r, hy=edge.y*r;
-    const bottomRound=Math.max(0,Math.min(1,(hy-3.15)/4.2));
-    hx *= 1.0 + bottomRound*.085;
-    hy -= bottomRound*bottomRound*.22;
+    const bottomRound=Math.max(0,Math.min(1,(hy-2.15)/4.65));
+    const bottomCenter=Math.max(0,1-Math.min(1,Math.abs(hx)/5.2));
+    const bottomCap=bottomRound*bottomRound*bottomCenter;
+    hx *= 1.0 + bottomRound*.16 + bottomCap*.22;
+    hy -= bottomRound*bottomRound*.46 + bottomCap*.92;
     const centralColumn=Math.max(0,1-Math.min(1,Math.abs(hx)/2.35))*Math.max(0,Math.min(1,(hy+10.5)/15.5));
-    if(centralColumn>.72 && Math.random()<(.34 + bottomRound*.18)) hx += (Math.random()<.5?-1:1) * (.42 + Math.random()*(.72 + bottomRound*.28));
+    if(centralColumn>.68 && Math.random()<(.38 + bottomRound*.30)) hx += (Math.random()<.5?-1:1) * (.46 + Math.random()*(.78 + bottomRound*.54));
     const phase=Math.random()*Math.PI*2;
     const depth=outerLayer ? .66+Math.random()*.34 : middleLayer ? .32+Math.random()*.34 : .06+Math.random()*.24;
     const ca=Math.random()*Math.PI*2, cr=.75+Math.pow(Math.random(),1.7)*5.8;
@@ -376,8 +378,8 @@ function buildGeometry(){
     const tint=0.5 + (tintBase-0.5)*(1-0.15*trunkSoft);
     const alphaBase=outerLayer ? .48+Math.random()*.28 : middleLayer ? .24+Math.random()*.20 : .12+Math.random()*.13;
     const sizeBase=outerLayer ? 1.04+Math.random()*.74 : middleLayer ? .78+Math.random()*.46 : .58+Math.random()*.26;
-    const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn)*(1-.16*bottomRound*centerline);
-    const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn)*(1-.10*bottomRound*centerline);
+    const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn)*(1-.34*bottomRound*centerline)*(1-.28*bottomCap);
+    const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn)*(1-.22*bottomRound*centerline)*(1-.18*bottomCap);
     const write=(arr,base,s)=>{arr[base]=hx;arr[base+1]=hy;arr[base+2]=cx;arr[base+3]=cy;arr[base+4]=tint;arr[base+5]=alpha;arr[base+6]=size;arr[base+7]=phase;arr[base+8]=depth;arr[base+9]=s;};
     for(let j=0;j<segs;j++){
       const s0=j/segs,s1=(j+1)/segs;
