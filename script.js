@@ -14,33 +14,33 @@ window.addEventListener('error', () => app?.classList.add('render-fallback'));
 const themes = {
   predawn: {
     label: 'Pre-dawn', icon: 'orbit',
-    rayA: [1.00, 0.82, 0.56], rayB: [0.98, 0.34, 0.52],
-    bgA: [0.66, 0.60, 0.96], bgB: [0.42, 0.36, 0.78], bgC: [0.18, 0.23, 0.50],
+    rayA: [1.00, 0.74, 0.56], rayB: [0.96, 0.28, 0.46],
+    bgA: [0.62, 0.58, 0.88], bgB: [0.36, 0.34, 0.68], bgC: [0.16, 0.20, 0.42],
   },
   sunrise: {
     label: 'Sunrise', icon: 'sunrise',
-    rayA: [0.10, 0.18, 0.74], rayB: [0.58, 0.90, 0.92],
-    bgA: [1.00, 0.74, 0.58], bgB: [0.96, 0.46, 0.42], bgC: [0.72, 0.34, 0.66],
+    rayA: [0.05, 0.12, 0.72], rayB: [0.62, 0.92, 0.95],
+    bgA: [1.00, 0.78, 0.52], bgB: [0.94, 0.42, 0.30], bgC: [0.98, 0.62, 0.38],
   },
   daytime: {
     label: 'Daytime', icon: 'sun',
-    rayA: [0.96, 0.26, 0.40], rayB: [1.00, 0.72, 0.30],
-    bgA: [0.58, 0.80, 0.98], bgB: [0.38, 0.62, 0.92], bgC: [0.24, 0.48, 0.78],
+    rayA: [0.92, 0.10, 0.34], rayB: [1.00, 0.70, 0.18],
+    bgA: [0.58, 0.92, 0.84], bgB: [0.32, 0.72, 0.78], bgC: [0.70, 0.88, 0.58],
   },
   dusk: {
     label: 'Dusk', icon: 'dusk',
-    rayA: [0.72, 0.96, 0.88], rayB: [1.00, 0.84, 0.58],
-    bgA: [0.66, 0.46, 0.86], bgB: [0.40, 0.28, 0.70], bgC: [0.18, 0.22, 0.50],
+    rayA: [1.00, 0.90, 0.70], rayB: [0.70, 0.98, 0.86],
+    bgA: [0.62, 0.28, 0.56], bgB: [0.36, 0.16, 0.42], bgC: [0.18, 0.16, 0.36],
   },
   sunset: {
     label: 'Sunset', icon: 'sunset',
-    rayA: [0.12, 0.20, 0.78], rayB: [0.52, 0.86, 0.96],
-    bgA: [1.00, 0.62, 0.34], bgB: [0.94, 0.32, 0.46], bgC: [0.58, 0.28, 0.78],
+    rayA: [0.04, 0.14, 0.64], rayB: [0.20, 0.78, 0.92],
+    bgA: [0.98, 0.48, 0.26], bgB: [0.76, 0.22, 0.34], bgC: [0.46, 0.20, 0.62],
   },
   night: {
     label: 'Night', icon: 'moon',
-    rayA: [1.00, 0.80, 0.48], rayB: [0.96, 0.32, 0.54],
-    bgA: [0.24, 0.32, 0.70], bgB: [0.10, 0.15, 0.42], bgC: [0.04, 0.06, 0.18],
+    rayA: [1.00, 0.82, 0.42], rayB: [0.96, 0.30, 0.56],
+    bgA: [0.10, 0.26, 0.34], bgB: [0.04, 0.12, 0.24], bgC: [0.02, 0.04, 0.12],
   },
 };
 
@@ -332,11 +332,13 @@ function heartPoint(t){
   const s=Math.sin(t);
   let x=16*s*s*s;
   let y=-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));
-  if (y > 2.2) y = 2.2 + (y - 2.2) * .72;
-  if (y < -7.2) y = -7.2 + (y + 7.2) * .94;
-  const fullness = Math.max(0, 1 - Math.min(1, Math.abs(y - .5) / 12));
-  x *= 1.035 + fullness * .035;
-  y *= .96;
+  if (y > .85) y = .85 + (y - .85) * .50;
+  if (y > 4.2) y = 4.2 + (y - 4.2) * .26;
+  if (y < -7.0) y = -7.0 + (y + 7.0) * .90;
+  const fullness = Math.max(0, 1 - Math.min(1, Math.abs(y - .2) / 11.5));
+  const shoulder = Math.max(0, 1 - Math.min(1, Math.abs(y + 2.7) / 5.5));
+  x *= 1.055 + fullness * .055 + shoulder * .035;
+  y *= .90;
   return {x, y};
 }
 function particleCount(){if(W<=430)return 520;if(W<=760)return 660;if(W<=1200)return 920;return 1120;}
@@ -352,29 +354,32 @@ function buildGeometry(){
     const tt=((i+.35*Math.random())/n)*Math.PI*2;
     const edge=heartPoint(tt), layerRoll=Math.random();
     const outerLayer=layerRoll>.36, middleLayer=layerRoll>.15 && layerRoll<=.36;
-    const r=outerLayer
+    let r=outerLayer
       ? .84+Math.pow(Math.random(),.50)*.16
       : middleLayer
         ? .56+Math.pow(Math.random(),.72)*.26
         : .30+Math.pow(Math.random(),.82)*.30;
     let hx=edge.x*r, hy=edge.y*r;
+    const lowerRound=Math.max(0,Math.min(1,(hy-.45)/5.6));
+    hy -= lowerRound*lowerRound*.82;
+    hx *= 1.0 + lowerRound*.18;
     const centralColumn=Math.max(0,1-Math.min(1,Math.abs(hx)/2.35))*Math.max(0,Math.min(1,(hy+10.5)/15.5));
-    if(centralColumn>.72 && Math.random()<.34) hx += (Math.random()<.5?-1:1) * (.42 + Math.random()*.72);
+    if(centralColumn>.62 && Math.random()<.48) hx += (Math.random()<.5?-1:1) * (.52 + Math.random()*.92);
     const phase=Math.random()*Math.PI*2;
     const depth=outerLayer ? .66+Math.random()*.34 : middleLayer ? .32+Math.random()*.34 : .06+Math.random()*.24;
     const ca=Math.random()*Math.PI*2, cr=.75+Math.pow(Math.random(),1.7)*5.8;
     const coreBias=centralColumn*centralColumn*(Math.random()<.5?-1:1)*(.55+Math.random()*1.20);
     const cx=Math.cos(ca)*cr+coreBias, cy=Math.sin(ca)*cr;
     const rawTint=Math.random()*0.92 + 0.04 + (Math.random()-0.5)*0.10;
-    const bottomness=Math.max(0,Math.min(1,(hy-1.5)/12.0));
+    const bottomness=Math.max(0,Math.min(1,(hy-.35)/7.8));
     const centerline=Math.max(0,1-Math.min(1,Math.abs(hx)/4.8));
     const trunkSoft=bottomness*centerline;
     const tintBase=Math.max(0,Math.min(1,rawTint));
     const tint=0.5 + (tintBase-0.5)*(1-0.15*trunkSoft);
     const alphaBase=outerLayer ? .48+Math.random()*.28 : middleLayer ? .24+Math.random()*.20 : .12+Math.random()*.13;
     const sizeBase=outerLayer ? 1.04+Math.random()*.74 : middleLayer ? .78+Math.random()*.46 : .58+Math.random()*.26;
-    const alpha=alphaBase*(1-0.88*trunkSoft)*(1-0.52*centralColumn);
-    const size=sizeBase*(1-0.34*trunkSoft)*(1-0.22*centralColumn);
+    const alpha=alphaBase*(1-0.92*trunkSoft)*(1-0.58*centralColumn)*(1-.30*lowerRound*centerline);
+    const size=sizeBase*(1-0.38*trunkSoft)*(1-0.26*centralColumn)*(1-.20*lowerRound*centerline);
     const write=(arr,base,s)=>{arr[base]=hx;arr[base+1]=hy;arr[base+2]=cx;arr[base+3]=cy;arr[base+4]=tint;arr[base+5]=alpha;arr[base+6]=size;arr[base+7]=phase;arr[base+8]=depth;arr[base+9]=s;};
     for(let j=0;j<segs;j++){
       const s0=j/segs,s1=(j+1)/segs;

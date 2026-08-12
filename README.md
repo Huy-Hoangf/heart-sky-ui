@@ -25,6 +25,7 @@ Static HTML/CSS/JavaScript project. No backend required.
 - Pointer/touch interaction now uses a wider swept brush trail, so rays bend like fibers under a fingertip instead of reacting to a single point.
 - A subtle lift shadow pass is drawn behind the heart to separate it from the background without a hard outline.
 - Pointer shaping is softened to avoid a sharp pulled tip, and palettes are tuned toward cinematic rose, pearl, champagne, and muted cobalt tones.
+- Theme art direction is split into six distinct moods, and the heart shape is further rounded with a shorter, softer bottom.
 
 ## Run
 Open `index.html`, or use VS Code Live Server.
