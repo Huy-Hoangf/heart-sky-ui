@@ -14,8 +14,8 @@ window.addEventListener('error', () => app?.classList.add('render-fallback'));
 const themes = {
   predawn: {
     label: 'Pre-dawn', icon: 'orbit',
-    rayA: [1.00, 0.74, 0.56], rayB: [0.96, 0.28, 0.46],
-    bgA: [0.62, 0.58, 0.88], bgB: [0.36, 0.34, 0.68], bgC: [0.16, 0.20, 0.42],
+    rayA: [1.00, 0.82, 0.54], rayB: [1.00, 0.34, 0.62],
+    bgA: [0.46, 0.40, 0.74], bgB: [0.24, 0.22, 0.54], bgC: [0.08, 0.12, 0.30],
   },
   sunrise: {
     label: 'Sunrise', icon: 'sunrise',
@@ -34,8 +34,8 @@ const themes = {
   },
   sunset: {
     label: 'Sunset', icon: 'sunset',
-    rayA: [0.04, 0.14, 0.64], rayB: [0.20, 0.78, 0.92],
-    bgA: [0.98, 0.48, 0.26], bgB: [0.76, 0.22, 0.34], bgC: [0.46, 0.20, 0.62],
+    rayA: [0.02, 0.24, 0.86], rayB: [0.32, 0.96, 1.00],
+    bgA: [0.90, 0.38, 0.22], bgB: [0.62, 0.12, 0.30], bgC: [0.30, 0.14, 0.50],
   },
   night: {
     label: 'Night', icon: 'moon',
@@ -443,11 +443,11 @@ function layout(){
   if(landscape){const scale=Math.min(W/43,H/31.7);return{cx:W*.51,cy:H*.57,scale};}
   if(mobile){
     const safeTop=Math.max(82,H*.11),safeBottom=Math.max(38,H*.05),usableH=H-safeTop-safeBottom;
-    const scale=Math.min(W/34.8,usableH/31.2), halfH=15.6*scale;
+    const scale=Math.min(W/32.8,usableH/29.6), halfH=14.8*scale;
     let cy=safeTop+usableH*.51; cy=Math.max(safeTop+halfH,Math.min(H-safeBottom-halfH,cy));
     return{cx:W*.50,cy,scale};
   }
-  return{cx:W*.50,cy:H*.57,scale:Math.min(W/42.2,H/35.8)};
+  return{cx:W*.50,cy:H*.57,scale:Math.min(W/39.8,H/33.8)};
 }
 
 function resize(){
